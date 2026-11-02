@@ -10,7 +10,7 @@ COPY packages/frontend ./packages/frontend
 RUN npm run build -w packages/frontend
 
 # ── Stage 2: serve with nginx-unprivileged (port 8080, no root required) ───
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM ghcr.io/nginxinc/nginx-unprivileged:1.27-alpine
 
 COPY packages/frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/packages/frontend/dist /usr/share/nginx/html
