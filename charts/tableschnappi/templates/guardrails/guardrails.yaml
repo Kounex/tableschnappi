@@ -18,16 +18,12 @@ data:
         # got guardrails pointed at the stale built-in default instead — a
         # predictor in a namespace they do not own.
         model: {{ include "tableschnappi.modelName" . }}
+        # The NemoGuardrails CR injects this from the model Secret when the
+        # configured endpoint requires authentication. Keeping the token out
+        # of this ConfigMap prevents it being exposed to ConfigMap readers.
+        api_key_env_var: OPENAI_API_KEY
         parameters:
           base_url: {{ include "tableschnappi.modelEndpoint" . }}/v1
-          # LIMITATION: this config lives in a ConfigMap, so a bearer token
-          # cannot be put here without exposing it to anyone with configmap
-          # read access in the namespace. Guardrails therefore only works
-          # against an endpoint that needs no auth — typically an in-cluster
-          # vLLM. Against an authenticated MaaS gateway, set
-          # guardrails.enabled=false; the in-code reservation checks and the
-          # system prompt still apply.
-          api_key: EMPTY
           ssl_verify: false
           extra_body:
             chat_template_kwargs:
@@ -70,6 +66,21 @@ metadata:
   labels:
     {{- include "tableschnappi.labels" . | nindent 4 }}
 spec:
+  # NeMo Guardrails reads this via api_key_env_var above. Use the same model
+  # Secret as the assistant so authenticated gateways (including MaaS) work
+  # without placing a credential in the ConfigMap.
+  env:
+    - name: OPENAI_API_KEY
+      {{- if include "tableschnappi.modelAuthEnabled" . }}
+      valueFrom:
+        secretKeyRef:
+          name: {{ include "tableschnappi.modelSecretName" . }}
+          key: token
+      {{- else }}
+      # The OpenAI-compatible client requires a value; unauthenticated vLLM
+      # endpoints ignore it.
+      value: EMPTY
+      {{- end }}
   nemoConfigs:
     - name: restaurant-rails
       configMaps:
