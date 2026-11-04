@@ -1,6 +1,6 @@
 # Workshop infrastructure: OpenShift 4.22 and OpenShift AI 3.5
 
-This guide show how to install and configure **Red Hat OpenShift AI Self-Managed 3.5** on an existing **OpenShift Container Platform 4.22** cluster. It does not provision the cluster itself. Use a connected, disposable workshop cluster; the bundled SQLite MLflow and chart-managed MinIO are development configurations.
+This guide show how to install and configure **Red Hat OpenShift AI Self-Managed 3.5** on an existing **OpenShift Container Platform 4.22** cluster. It does not provision the cluster itself. Use a connected, disposable workshop cluster.
 
 ## What the notebooks require
 
