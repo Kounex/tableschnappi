@@ -185,6 +185,8 @@ resources:
 route:
   # Set to false to skip creating OpenShift Routes (use your own ingress)
   enabled: true
+  # Allow model/tool/guardrail round trips to finish before the router closes chat.
+  timeout: 180s
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect

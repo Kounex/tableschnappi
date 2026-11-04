@@ -12,6 +12,7 @@ Responsibilities:
 Auth: MLFLOW_TRACKING_AUTH=kubernetes-namespaced (RHOAI 3.5 standard)
       Reads SA token + namespace automatically — no manual headers needed.
 """
+import asyncio
 import importlib.util
 import json
 import logging
@@ -918,6 +919,15 @@ _oai = OpenAI(base_url=f"{UPSTREAM_URL}/v1", api_key="EMPTY",
 
 MAX_MESSAGES_PER_TURN = 20
 
+def _run_assistant_turn(messages: list, session_id: str, slug: str,
+                        table: int | None = None) -> tuple:
+    response, tool_calls = run_assistant(messages, session_id, slug, table)
+    # MLflow's last trace is thread-local; capture it in the same worker
+    # that ran the traced turn so concurrent requests keep their own IDs.
+    trace_id = mlflow.get_last_active_trace_id()
+    return response, tool_calls, trace_id
+
+
 @app.post("/assistant")
 async def assistant(request: Request):
     body    = await request.json()
@@ -940,13 +950,15 @@ async def assistant(request: Request):
             return JSONResponse({"error": "Invalid table."}, status_code=400)
 
     try:
-        response, tool_calls = run_assistant(msgs, session, slug, table)
+        # Model, guardrail, MCP, and MLflow calls are synchronous. Keep
+        # them off the event loop so health probes can run during a turn.
+        response, tool_calls, trace_id = await asyncio.to_thread(
+            _run_assistant_turn, msgs, session, slug, table,
+        )
     except Exception as e:
         log.error("Assistant turn failed: %s", e)
         # F-07: Don't leak internal error details to the browser
         return JSONResponse({"error": "Sorry, I'm having trouble right now. Please try again."}, status_code=502)
-
-    trace_id = mlflow.get_last_active_trace_id()
 
     return JSONResponse({"response": response, "traceId": trace_id, "toolCalls": tool_calls})
 
@@ -960,7 +972,8 @@ async def feedback(request: Request):
         return JSONResponse({"ok": False, "error": "traceId required"}, status_code=400)
     try:
         from mlflow.entities import AssessmentSource, AssessmentSourceType
-        mlflow.log_feedback(
+        await asyncio.to_thread(
+            mlflow.log_feedback,
             trace_id=trace_id,
             name="user_rating",
             value=score == 1,
@@ -980,7 +993,7 @@ async def feedback(request: Request):
 async def proxy_completions(request: Request):
     body = await request.json()
     try:
-        resp = _oai.chat.completions.create(**body)
+        resp = await asyncio.to_thread(_oai.chat.completions.create, **body)
         return JSONResponse(resp.model_dump())
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=502)

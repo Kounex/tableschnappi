@@ -4,6 +4,9 @@ kind: Route
 metadata:
   name: {{ include "tableschnappi.fullname" . }}-frontend
   namespace: {{ .Release.Namespace }}
+  annotations:
+    # Chat turns can take longer than the router's default request timeout.
+    haproxy.router.openshift.io/timeout: {{ .Values.route.timeout | default "180s" | quote }}
   labels:
     {{- include "tableschnappi.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
