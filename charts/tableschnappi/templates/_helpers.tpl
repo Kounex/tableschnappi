@@ -44,7 +44,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Image helper — resolves quay.io/kgoud/<repo>:<tag>.
+Image helper — resolves quay.io/tableschnappi/<repo>:<tag>.
 Usage: {{ include "tableschnappi.image" (list . "mcpServer") }}
 */}}
 {{- define "tableschnappi.image" -}}

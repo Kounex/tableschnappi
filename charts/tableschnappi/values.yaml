@@ -1,6 +1,6 @@
 # ── Images ────────────────────────────────────────────────────────────────────
 image:
-  registry: quay.io/kgoud
+  registry: quay.io/tableschnappi
   tag: latest
   pullPolicy: Always
 

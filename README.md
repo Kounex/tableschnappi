@@ -45,7 +45,7 @@ Worth knowing before you spend an afternoon on this:
 - **The backend store is in-memory.** Data resets on pod restart. That is
   deliberate so each workshop participant starts fresh.
 - **The garak image is not published.** Build it yourself — see below. The
-  other four are on `quay.io/kgoud` and public.
+  other four are on `quay.io/tableschnappi` and public.
 
 ## Run the demo
 
@@ -169,7 +169,7 @@ Two extras are **off by default** and are opt-in rather than part of this path:
 | Helm | 3.14+ |
 | `oc` CLI | 4.19+ |
 | Cluster-admin access | Required for MCP, Guardrails CRDs, and gateway setup |
-| Quay.io pull access | `quay.io/kgoud/*` images are public |
+| Quay.io pull access | `quay.io/tableschnappi/*` images are public |
 
 RHOAI components that must be enabled in the DataScienceCluster before installing:
 - `kserve` (model serving)
@@ -317,7 +317,7 @@ Helm hooks run automatically in order:
 
 | Value | Default | Description |
 |---|---|---|
-| `image.registry` | `quay.io/kgoud` | Container registry prefix |
+| `image.registry` | `quay.io/tableschnappi` | Container registry prefix |
 | `image.tag` | `latest` | Image tag for all services |
 | `model.mode` | `self-hosted` | `self-hosted` for a model you run in the cluster, `maas` for a shared gateway |
 | `model.endpoint` | _(required)_ | OpenAI-compatible base URL, **without** a trailing `/v1` — the chart appends it |
@@ -540,7 +540,7 @@ helm upgrade --install tableschnappi charts/tableschnappi \
 The build pod needs egress to `pypi.org` and `download.pytorch.org`.
 
 
-Images are built automatically by GitHub Actions on push to `main` and published to `quay.io/kgoud/tableschnappi-*`. Two tags are created per build: the short git SHA (e.g. `abc1234`) and `latest`.
+Images are built automatically by GitHub Actions on push to `main` and published to `quay.io/tableschnappi/tableschnappi-*`. Two tags are created per build: the short git SHA (e.g. `abc1234`) and `latest`.
 
 To rebuild and publish to your own registry, use the script — it handles the
 per-image build contexts, picks podman or docker, and prints the matching helm
