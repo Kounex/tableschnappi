@@ -566,7 +566,7 @@ def agent(state: AgentState) -> dict:
         api_key=API_KEY,
         model=MODEL_NAME,
         temperature=0.3,
-        max_tokens=600,
+        max_tokens=3000,
         http_client=_insecure_client,
         extra_body=EXTRA_BODY,
     )
@@ -579,7 +579,7 @@ def agent(state: AgentState) -> dict:
     if not response.content and not response.tool_calls:
         response = ChatOpenAI(
             base_url=VLLM_URL, api_key=API_KEY, model=MODEL_NAME,
-            temperature=0.3, max_tokens=600, http_client=_insecure_client,
+            temperature=0.3, max_tokens=3000, http_client=_insecure_client,
             extra_body=EXTRA_BODY,
         ).invoke(msgs)
     return {"messages": [response]}
