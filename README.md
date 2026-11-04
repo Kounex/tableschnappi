@@ -551,6 +551,23 @@ QUAY_ORG=<your-org> ./scripts/build-push.sh
 QUAY_ORG=<your-org> TAG=v1.2.3 IMAGES="backend frontend" ./scripts/build-push.sh
 ```
 
+To build all four application images locally with Podman, push them to Quay,
+and roll out an existing OpenShift installation:
+
+```bash
+podman login quay.io
+# Log into the target cluster with oc login first.
+NAMESPACE=<your-project> QUAY_ORG=<your-org> ./scripts/build-push-rollout.sh
+```
+
+The script checks the four deployments, builds and pushes all images, then
+updates each deployment by digest and waits for it to become ready. It keeps
+the existing model and other deployment settings. Set `DEPLOYMENT_PREFIX` if
+your deployment names do not start with `tableschnappi`; `TAG`, `PLATFORM`,
+and `ROLLOUT_TIMEOUT` are also configurable (see `--help`). A later Helm
+upgrade uses the image values configured in Helm, so keep those aligned with
+the images you intend to run.
+
 The script exists because the build context differs per image: `mlflow-proxy`
 needs its own directory (its Dockerfile `COPY`s with no path prefix) while the
 others need the repo root (they `COPY` from `packages/<name>/...`). It also
