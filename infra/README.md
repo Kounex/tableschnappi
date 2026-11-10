@@ -68,6 +68,10 @@ Set `NAMESPACE` and `WORKBENCH_SA` first. Verify the role name on your cluster a
 
 ## Provide the model endpoint
 
+To optionally browse models through the OpenShift AI model catalog, follow
+[Enable the model catalog in OpenShift AI 3.5](model-catalog.md) and run the
+companion `enable-model-catalog.sh` script.
+
 Supply an OpenAI-compatible endpoint with functioning `/v1/models`, `/v1/chat/completions` and tool calling. Verify a tool-call response, not just a successful chat. Use the exact model ID returned by the endpoint. Set the base URL without `/v1` or a trailing slash.
 
 The bootstrap enables KServe and installs cert-manager as a TrustyAI prerequisite. For local model hosting, configure standard KServe serving and a supported vLLM runtime through OpenShift AI. On NVIDIA hardware, install Node Feature Discovery and the NVIDIA GPU Operator, configure their operands, and verify allocatable `nvidia.com/gpu` before deploying the model. Configure a model storage connection/download credentials, GPU count, memory, PVC/object storage and the runtime's tool-call parser/chat template for your chosen model. Size these for the model and concurrent class traffic. The script accepts the resulting endpoint; it does not guess a GPU vendor, model license, weight location or runtime configuration. Advanced llm-d additionally needs Connectivity Link and Leader Worker Set and is unnecessary for these exercises. Follow the component-specific links in the [3.5 installation guide](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5/html/installing_and_uninstalling_openshift_ai_self-managed/installing-and-deploying-openshift-ai_install).
