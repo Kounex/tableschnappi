@@ -82,7 +82,7 @@ class WorkshopTests(unittest.TestCase):
                 self.assertIn(job["spec"]["template"]["spec"]["serviceAccountName"], accounts)
 
     def test_asset_and_all_model_consumers_use_same_secret(self):
-        objects = render("garak.enabled=true")
+        objects = render("garak.enabled=true", "aiAsset.enabled=true")
         asset = next(obj for obj in by_kind(objects, "ConfigMap") if obj["metadata"]["name"] == "gen-ai-aa-custom-model-endpoints")
         provider = yaml.safe_load(asset["data"]["config.yaml"])["providers"]["inference"][0]
         self.assertEqual(provider["config"]["custom_gen_ai"]["api_key"]["secretRef"], {"name": "model-api-key", "key": "api_key"})

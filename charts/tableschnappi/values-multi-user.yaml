@@ -42,7 +42,7 @@ guardrails:
   # Match workshop/05-guardrails.md: shields connected, NeMo input policy initially empty.
   shieldsEnabled: true
 aiAsset:
-  enabled: true
+  enabled: false
 genaiStudio:
   enabled: false
 garak:

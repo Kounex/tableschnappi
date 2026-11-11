@@ -57,7 +57,7 @@ projects; this application chart installs into that foundation.
 | `manifests/10-images/`, `config/` | Git BuildConfigs with explicit Dockerfile/context paths, source commit and image locks | Builds have reviewable inputs; deployments can select immutable image digests |
 | `manifests/20-mlflow/` | MLflow custom resource, PostgreSQL/PVC and ODF object-bucket storage | Share tracking metadata/artifacts across the event instead of installing 50 tracking servers |
 | `manifests/30-participant/project/` | Namespace, service account, RoleBindings, quota, limits, ingress policy and image-pull grant | Repeatable separation and resource boundaries for `user01`–`user50`; project labels enable OpenShift AI discovery |
-| Participant model configuration | External endpoint/model parameters, namespace-local model Secret and native AI asset ConfigMap | Reuse the provided model API and make it discoverable without deploying a local model or another gateway |
+| Participant model configuration | External endpoint/model parameters and a namespace-local model Secret | Reuse the provided model API directly; unused AI asset registration has been removed from the lab |
 | `scripts/` and `scripts/helpers/` | Thin batch entry commands, native `oc process` into server-side apply, Secret bootstrap and waits | Apply templates directly for a user range without generating 50 manifest trees; persistent configuration stays in YAML |
 | `docs/TEARDOWN.md` | Exercise reset, participant deletion and full platform/storage removal | State clearly what is retained, including notebook PVCs and shared MLflow history |
 
@@ -66,11 +66,12 @@ deployment. In particular, its source lock still selects the earlier Stefan
 revision. Moving to the merged fork requires new image/source selections and a
 two-user delete/recreate pilot before applying the full roster.
 
-The AI asset entry is discovery configuration. The restaurant assistant and
-NeMo still call the external API with the model Secret; the entry is not a proxy
-and does not remove the need for an API key. The workbench has model credentials
-for independent exploration, but the guided comparison notebook only calls the
-restaurant API. Shared provider quota also remains shared. PostgreSQL is a single persistent lab Deployment, not an HA
+The lab does not create an AI asset registration: it was a discovery entry
+outside the request path, with no role in the attendee exercises. The restaurant
+assistant and NeMo call the external API with the model Secret. The workbench
+has model credentials for independent exploration, but the guided comparison
+notebook only calls the restaurant API. Shared provider quota remains shared.
+PostgreSQL is a single persistent lab Deployment, not an HA
 operator-managed database. The runbook uses explicit applies; it does not add
 a continuous GitOps controller.
 
@@ -98,7 +99,7 @@ The multi-user chart change adds these capabilities:
 | Optional per-user pipelines | The event disables DSPA/pipelines, avoiding a pipeline database/storage stack per person |
 | Full image references and pinned workbench source | Images can use digests; fresh workbenches check out an exact source commit |
 | Existing model Secret name/key | App, NeMo and workbench use a namespace-local Secret instead of placing keys in values |
-| AI asset ConfigMap | Registers the external endpoint for project discovery; it does not proxy model requests or reconfigure the app |
+| AI asset registration disabled in the lab | The restaurant does not consume it; endpoint/model configuration stays in Helm values and the Secret |
 | Persistent Secrets/accounts/bindings as normal resources | Helm tracks them for uninstall; supplied external Secrets remain external |
 | Wait/seed Jobs as post-install/post-upgrade hooks | Accounts and grants exist before the Jobs use them; seeding preserves existing prompts |
 | Optional prepackaged source ConfigMap | Allows initial source delivery without Git access; existing PVC edits are preserved |

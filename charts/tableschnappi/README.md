@@ -2,7 +2,7 @@
 
 Use one release per participant namespace. `values-multi-user.yaml` is a small
 profile for a restaurant, notebook-only workbench, shared namespace-authorized
-MLflow, NeMo and the native RHOAI 3.5 AI asset entry. Copy it to your ignored
+MLflow and NeMo. The lab does not register a separate AI asset. Copy it to your ignored
 `my-values.yaml`, replace the example domain/model/image references and set
 `workbench.name`/`workbench.username` to the participant's OpenShift identity.
 
@@ -74,7 +74,9 @@ Export notebooks before a deliberate PVC reset.
 
 ## AI asset and guardrails
 
-`aiAsset.enabled` creates the native project ConfigMap
+The multi-user lab leaves `aiAsset.enabled: false`: its restaurant and NeMo use
+model values/Secrets directly. For other use cases, `aiAsset.enabled: true`
+creates the native project ConfigMap
 `gen-ai-aa-custom-model-endpoints` with the same endpoint/model/Secret reference.
 Enable the RHOAI 3.5 dashboard custom endpoint feature separately. This is
 Technology Preview and configures AI assets/Playground discovery; it does not
