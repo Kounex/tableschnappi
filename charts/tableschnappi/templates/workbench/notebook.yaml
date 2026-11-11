@@ -150,8 +150,6 @@ spec:
             # URI/auth are injected by the native Notebook MLflow annotation.
             - name: MLFLOW_WORKSPACE
               value: {{ .Release.Namespace | quote }}
-            - name: MLFLOW_TRACKING_INSECURE_TLS
-              value: "true"
             {{- end }}
             - name: MODEL_BASE_URL
               value: "{{ include "tableschnappi.modelEndpoint" . }}/v1"

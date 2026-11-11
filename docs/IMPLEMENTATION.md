@@ -266,7 +266,9 @@ not an LLM judge or a separate implementation of the restaurant agent.
 RHOAI data-science workbench image. The environment runbook builds it through
 OpenShift and supplies its digest as `workbench.image`, so opening the notebook
 does not require a manual package install. These packages do not replace the
-native injected authentication.
+native injected authentication. The workbench uses normal TLS verification;
+the cluster pilot confirmed the gateway certificate validates without disabling
+certificate checks.
 
 The notebook reads the alias; it never publishes or activates prompts. Run the
 baseline batch, change active in the MLflow UI, then run the candidate batch.
