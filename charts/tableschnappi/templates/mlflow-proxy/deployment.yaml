@@ -28,6 +28,12 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: PROMPT_URI
+              value: {{ .Values.assistant.promptUri | quote }}
+            - name: MLFLOW_ALIAS_PROMPT_CACHE_TTL_SECONDS
+              value: {{ .Values.assistant.promptCacheTtlSeconds | quote }}
+            - name: MLFLOW_UI_URL
+              value: {{ .Values.rhoai.mlflowUiUrl | default "" | quote }}
             {{- if .Values.mlflow.enabled }}
             - name: MLFLOW_TRACKING_URI
               value: {{ .Values.rhoai.mlflowUri | quote }}

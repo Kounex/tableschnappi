@@ -1,0 +1,22 @@
+name: MLflow workshop checks
+on: [push, pull_request]
+jobs:
+  workshop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: azure/setup-helm@v4.3.0
+      - run: npm ci
+      - run: npm run build -w packages/frontend
+      - run: npx tsc --noEmit -p packages/backend/tsconfig.json
+      - run: npx tsx --test packages/backend/test/feedback.test.ts
+      - run: pip install -r packages/mlflow-proxy/requirements.txt pyyaml
+      - run: python -m unittest discover -s packages/mlflow-proxy/tests -v
+      - run: python -m unittest discover -s charts/tableschnappi/tests -v

@@ -102,6 +102,8 @@ rhoai:
 # other target for ASSISTANT_URL.
 assistant:
   enabled: true
+  promptUri: prompts:/restaurant-assistant-prompt@latest
+  promptCacheTtlSeconds: 60
 
 # MLflow tracing, prompt registry, and the seed/wait install hooks. Independent
 # of `assistant.enabled`: with this off, chat still works and the assistant

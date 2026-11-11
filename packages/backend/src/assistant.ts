@@ -49,15 +49,16 @@ export function createAssistantRouter(): Router {
       return res.status(400).json({ error: 'traceId and score required' })
     }
     try {
-      await fetch(`${ASSISTANT_URL}/feedback`, {
+      const upstream = await fetch(`${ASSISTANT_URL}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ traceId, score }),
       })
+      return res.status(upstream.status).json(await upstream.json())
     } catch (e) {
       console.error('Feedback proxy error:', e)
+      return res.status(502).json({ ok: false, error: 'Feedback was not saved. Please retry.' })
     }
-    res.json({ ok: true })
   })
 
   // Proxy garak run/status to the Python service

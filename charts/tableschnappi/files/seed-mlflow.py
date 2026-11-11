@@ -57,3 +57,16 @@ if existing is None:
     print("Created initial prompt version", result.version)
 else:
     print("Preserved prompt version", existing.version)
+
+# Upgrades must not move aliases that participants have already changed.
+initial = existing if existing is not None else result
+for alias in ("baseline", "active"):
+    selected = mlflow.genai.load_prompt(
+        f"prompts:/restaurant-assistant-prompt@{alias}",
+        allow_missing=True, cache_ttl_seconds=0,
+    )
+    if selected is None:
+        mlflow.genai.set_prompt_alias(
+            name="restaurant-assistant-prompt", alias=alias, version=initial.version,
+        )
+        print("Initialized alias", alias, "to version", initial.version)
