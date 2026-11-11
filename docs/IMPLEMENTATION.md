@@ -179,9 +179,11 @@ rate an answer and find `user_rating` on the corresponding stored trace.
 
 ## 5. The workbench compares the actual application
 
-The new guides live beside the existing guardrails guide in `workshop/`.
-`mlflow-evaluation.ipynb` delegates HTTP/MLflow plumbing to `lab_support.py` and
-reads the five questions in `data/restaurant-cases.json`.
+Only the current numbered attendee guides and comparison notebook live in
+`workshop/`; implementation files are in `workshop/helpers/`. Instructor setup
+is in `docs/INSTRUCTOR.md`, and optional development examples are in `examples/`.
+`comparison.ipynb` delegates HTTP/MLflow plumbing to `helpers/lab_support.py` and
+reads the five questions in `helpers/restaurant-cases.json`.
 
 It calls the backend's normal restaurant chat endpoint using `RESTAURANT_API_URL`.
 Each case has a fresh session. It checks actual trace storage, tags app traces
@@ -189,7 +191,7 @@ with the case/variant, and logs a table and simple metrics in
 `restaurant-workshop-comparison`. This is a small comparison using MLflow runs,
 not an LLM judge or a separate implementation of the restaurant agent.
 
-Install `workshop/requirements-lab.txt` in the workbench before the session,
+Install `workshop/helpers/requirements.txt` in the workbench before the session,
 or bake it into the selected workbench image; the instructor guide provides
 the command. These packages do not replace the native injected authentication.
 

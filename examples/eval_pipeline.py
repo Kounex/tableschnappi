@@ -8,9 +8,9 @@ this evaluates whatever is actually running in the tableschnappi namespace.
 
 Run from a RHOAI workbench:
   pip install kfp==2.14.6
-  python3 workshop/eval_pipeline.py                     # compile only -> chatbot_eval_pipeline.yaml
-  python3 workshop/eval_pipeline.py --submit             # compile + submit a one-off run
-  python3 workshop/eval_pipeline.py --submit-recurring   # compile + create a weekly recurring run
+  python3 examples/eval_pipeline.py                     # compile only -> chatbot_eval_pipeline.yaml
+  python3 examples/eval_pipeline.py --submit             # compile + submit a one-off run
+  python3 examples/eval_pipeline.py --submit-recurring   # compile + create a weekly recurring run
 """
 
 import os

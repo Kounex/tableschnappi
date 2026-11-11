@@ -33,7 +33,7 @@ jobs:
           # missing env var dialled a predictor in a namespace nobody owns
           # and spent five minutes timing out instead of failing.
           hits=$(grep -rInE "my-first-model|llama-32-3b-instruct" \
-            packages/ workshop/ --include="*.py" --include="*.ts" --include="*.tsx" \
+            packages/ workshop/ examples/ --include="*.py" --include="*.ts" --include="*.tsx" \
             2>/dev/null || true)
           if [ -n "$hits" ]; then
             echo "$hits"

@@ -87,7 +87,7 @@ MCP registration is a shared singleton. No MaaS/Kuadrant gateway is installed.
 
 `guardrails.enabled: true` keeps NeMo available. The multi-user profile sets
 `shieldsEnabled: true` and retains the empty initial NeMo policy, matching
-`workshop/guardrails-workshop.md`. Its assistant-settings ConfigMap controls
+`workshop/05-guardrails.md`. Its assistant-settings ConfigMap controls
 `GUARDRAILS_ENABLED`; restart the assistant after changing that setting. After enabling
 policies/restarting NeMo, warm it with allowed/blocked requests before a chat and
 inspect traces/logs for fail-open: the existing 15-second timeout/fail-open policy
@@ -147,5 +147,5 @@ The multi-user profile supports the [attendee lab](../../workshop/README.md).
 It uses native MLflow prompt versions and an `active` alias, with alias caching
 set to zero for the lab. `rhoai.mlflowUiUrl` supplies browser trace links; it is
 separate from the tracking URI. Missing UI configuration leaves a copyable
-trace ID. Follow [instructor preparation](../../workshop/INSTRUCTOR.md) before
+trace ID. Follow [instructor preparation](../../docs/INSTRUCTOR.md) before
 allocating the roster. Existing workbench content is preserved on upgrades.

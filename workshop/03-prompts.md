@@ -1,4 +1,4 @@
-# Change the prompt, observe the difference
+# 03 — Change the prompt, observe the difference
 
 Use your own MLflow workspace. The restaurant loads
 `restaurant-assistant-prompt@active`. Creating a version and activating it are
@@ -15,9 +15,8 @@ the notebook or remove reservation checks enforced in code.
 
 In MLflow, open Prompts → `restaurant-assistant-prompt`. Note the version with
 the `active` alias. Chat about the menu and save its trace.
-For the guided one-hour lab, [run the baseline batch now](mlflow-evaluation-workshop.md#1-record-the-baseline),
-before creating/activating your candidate. Skip this step if you already
-recorded it at minutes 22–27.
+Your baseline batch from [step 02](02-baseline.md) should already be saved.
+Keep that evidence so you can compare the candidate later.
 
 ## 2. Create a version
 
@@ -46,13 +45,13 @@ If you see fallback or an unexpected version, stop and ask your instructor.
 
 Did the format change? Is the answer better supported? Try an unrelated
 question. Model behavior can vary; one attractive answer is insufficient.
-Keep this candidate active while you [record and compare its five cases](mlflow-evaluation-workshop.md#2-record-the-candidate).
+Keep this candidate active while you [record and compare its five cases](04-compare.md).
 The notebook sends requests to the restaurant API; the restaurant's LangGraph
 agent executes them using the selected system prompt.
 
-## 4. Restore
+## 4. Keep the candidate active
 
-After the candidate comparison finishes, move **active** back to the version
-selected by **baseline**. Start a fresh chat
-and verify the original version appears. Your candidate versions and traces
-remain available. Do not delete prompts or reset your project.
+Do not restore the baseline yet. The next exercise runs the same questions
+against this candidate, then restores the baseline.
+
+**Next:** [04 — Compare the candidate](04-compare.md).

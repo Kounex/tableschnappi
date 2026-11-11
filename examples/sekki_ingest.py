@@ -2,7 +2,7 @@
 Docling-based sekki PDF ingestion pipeline → LlamaStack Milvus vector store.
 
 Run ONCE after generating PDFs:
-  python3 workshop/sekki_ingest.py
+  python3 examples/sekki_ingest.py
 
 Requires:
   pip install docling mlflow[kubernetes] httpx

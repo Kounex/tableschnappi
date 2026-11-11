@@ -12,9 +12,9 @@ my-values.yaml
 .claude/
 
 # Generated or downloaded at build time — never commit
-workshop/fonts/
-workshop/sekki_pdfs/
-workshop/pipelines_gen/
+examples/fonts/
+examples/sekki_pdfs/
+examples/pipelines_gen/
 *.ttf
 *.pdf
 

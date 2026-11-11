@@ -1,4 +1,4 @@
-# Follow a restaurant conversation
+# 01 — Follow a restaurant conversation
 
 You need your restaurant and MLflow workspace open. The experiment is
 `restaurant-chatbot-traces`.
@@ -38,4 +38,4 @@ A green trace means execution completed; it does not establish correctness.
 its output and duration with the menu trace. No tool call can also be correct:
 a clarifying question or admission of uncertainty may need none.
 
-Continue with [prompt versions](mlflow-prompts-workshop.md).
+**Next:** [02 — Record the baseline](02-baseline.md).

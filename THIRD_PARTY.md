@@ -10,7 +10,7 @@ Material in this repository that originated elsewhere.
 | File | Upstream | Licence | Notes |
 |---|---|---|---|
 | `charts/tableschnappi/templates/_helpers.tpl` | [helm/helm](https://github.com/helm/helm) `helm create` scaffold | Apache-2.0 | Standard generated template helpers, extended for this chart |
-| `workshop/04_guardrails_eval_automated.ipynb` | [rh-ai-quickstart/multi-agent-loan-origination](https://github.com/rh-ai-quickstart/multi-agent-loan-origination) | Apache-2.0 | Evaluation pattern adapted from `evaluations/evaluate_agent_v2.ipynb`; credit also retained in the notebook itself |
+| `examples/04_guardrails_eval_automated.ipynb` | [rh-ai-quickstart/multi-agent-loan-origination](https://github.com/rh-ai-quickstart/multi-agent-loan-origination) | Apache-2.0 | Evaluation pattern adapted from `evaluations/evaluate_agent_v2.ipynb`; credit also retained in the notebook itself |
 
 ## Downloaded at build or run time
 
@@ -18,14 +18,14 @@ Not redistributed in this repository.
 
 | Asset | Source | Licence | Where |
 |---|---|---|---|
-| Noto Sans JP | [google/fonts](https://github.com/google/fonts) | SIL OFL 1.1 | Fetched by `workshop/generate_sekki_pdfs.py` and embedded into generated PDFs. OFL §1 expressly permits embedding, and does not make the resulting document OFL-licensed. No font binary is committed here. |
+| Noto Sans JP | [google/fonts](https://github.com/google/fonts) | SIL OFL 1.1 | Fetched by `examples/generate_sekki_pdfs.py` and embedded into generated PDFs. OFL §1 expressly permits embedding, and does not make the resulting document OFL-licensed. No font binary is committed here. |
 
 ## Runtime dependencies
 
 Installed from their upstream registries, not vendored. Exact resolved
 versions for everything the containers run are pinned in `package-lock.json`
 and the compiled `requirements.txt` files under `packages/`. The two
-workshop input files — `workshop/requirements-notebooks.in` and
+additional-example input files — `examples/requirements-notebooks.in` and
 `requirements-pipeline.in` — are **not** compiled: they are installed into a
 workbench interactively and carry loose ranges on purpose.
 
@@ -42,7 +42,7 @@ Notable, by component:
 - **Frontend** (`packages/frontend`): React and react-router-dom (MIT),
   socket.io-client (MIT), react-markdown (MIT), **lucide-react (ISC)**,
   Tailwind CSS, Vite and PostCSS (MIT).
-- **Workshop** (`workshop/`): kfp (Apache-2.0), Docling (MIT), transformers
+- **Additional examples** (`examples/`): kfp (Apache-2.0), Docling (MIT), transformers
   (Apache-2.0), pandas and numpy (BSD-3-Clause), matplotlib (PSF-style),
   seaborn (BSD-3-Clause), plotly (MIT), ipywidgets (BSD-3-Clause),
   fpdf2 (LGPL-3.0, used as an unmodified dependency only).
@@ -58,7 +58,7 @@ Container base images carry their own distribution licences:
 ## Documentation references
 
 Red Hat OpenShift AI product documentation informed the EvalHub REST API
-usage in `workshop/06_evalhub_native.ipynb`. API endpoints, payload shapes and
+usage in `examples/06_evalhub_native.ipynb`. API endpoints, payload shapes and
 header names are interface facts; no documentation prose is reproduced here.
 
 ## Original content
@@ -68,7 +68,7 @@ were written for this project. They exercise well-known injection techniques,
 but the wording is original and stays in the restaurant domain. No third-party
 jailbreak corpus is reproduced.
 
-`workshop/sekki_data.py` — seasonal descriptions and haiku written for this
+`examples/sekki_data.py` — seasonal descriptions and haiku written for this
 project (LLM-assisted). Fictional demo content for a fictional restaurant; the
 `health_wisdom` entries are not culinary or medical advice.
 

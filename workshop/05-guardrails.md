@@ -1,4 +1,9 @@
-# Keep TableSchnappi on the menu
+# 05 — Keep TableSchnappi on the menu
+
+Optional step 05, after the prompt comparison. In the one-hour lab, use steps
+2–4 below with your instructor's prepared policy. The full question suite and
+competitor challenge are extra work after the session. Keep the baseline
+restaurant prompt fixed while comparing guardrail behavior.
 
 In this workshop, you will explore an unrestricted restaurant assistant, enable
 a topic guardrail in OpenShift, and compare its responses before and after.
@@ -199,3 +204,5 @@ NeMo Deployment, and ask your instructor to warm it before retesting. If you
 started from the default empty policy, input flows should again be `[]`.
 Do not delete your namespace or comparison traces. Return the restaurant
 prompt's `active` alias to `baseline` if you changed it in the prompt exercise.
+
+**Finish:** [restore and wrap up](README.md#finish-and-restore).

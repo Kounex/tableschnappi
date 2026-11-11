@@ -5,7 +5,7 @@
 # laptop.
 #
 # Installable as-is:
-#   pip install -r workshop/requirements-notebooks.in
+#   pip install -r examples/requirements-notebooks.in
 #
 # Or compile a pinned requirements-notebooks.txt first:
 #   podman run --rm -v "$PWD":/w -w /w python:3.11-slim \

@@ -17,8 +17,8 @@ Required profile inputs:
 - `assistant.promptUri: prompts:/restaurant-assistant-prompt@active` and
   `assistant.promptCacheTtlSeconds: 0` for immediate workshop activation.
 - Workbench source repository/ref pinned to the workshop commit and notebook
-  dependencies from `requirements-lab.txt` preinstalled. In each fresh workbench,
-  run `python -m pip install -r tableschnappi/workshop/requirements-lab.txt` before
+  dependencies from `workshop/helpers/requirements.txt` preinstalled. In each fresh workbench,
+  run `python -m pip install -r tableschnappi/workshop/helpers/requirements.txt` before
   the event, or bake those dependencies into the selected workbench image.
   Attendees should not spend their hour installing packages.
 - Guardrails deployed, `shieldsEnabled: true`, and the initial empty input
@@ -32,14 +32,14 @@ and existing namespace authorization remain the isolation boundary.
 
 ## Rehearse
 
-Use the chronological flow in [README.md](README.md#your-hour). Record the
+Use the [chronological attendee flow](../workshop/README.md#your-hour). Record the
 baseline before participants activate a candidate, and defer restoration until
 the candidate batch finishes. Keep the same NeMo policy for both prompt batches.
 Explain that MLflow stores/activates the system prompt, the restaurant executes
 the agent, and the notebook only drives test requests. Skip the optional guardrail
 branch if a group needs more time for the core comparison.
 
-1. As two real participants, follow `README.md`; check own-workspace logging
+1. As two real participants, follow `workshop/README.md`; check own-workspace logging
    and foreign-workspace denial. Test trace links with normal browser login.
 2. Verify prompt creation alone leaves the app unchanged; moving active changes
    its next turn; moving it back restores the baseline. Inspect prompt lineage.

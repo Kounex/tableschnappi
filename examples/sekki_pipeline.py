@@ -9,9 +9,9 @@ clone step yourself.
 Run from a RHOAI workbench to compile and submit:
 
   pip install kfp==2.14.6        # add kfp-kubernetes only if you fork privately
-  python3 workshop/sekki_pipeline.py                     # compile only -> sekki_pipeline.yaml
-  python3 workshop/sekki_pipeline.py --submit             # compile + submit a one-off run
-  python3 workshop/sekki_pipeline.py --submit-recurring   # compile + create a weekly recurring run
+  python3 examples/sekki_pipeline.py                     # compile only -> sekki_pipeline.yaml
+  python3 examples/sekki_pipeline.py --submit             # compile + submit a one-off run
+  python3 examples/sekki_pipeline.py --submit-recurring   # compile + create a weekly recurring run
                                                            # (default: every Sunday 03:00 -- override
                                                            # with --cron="<expr>")
 
@@ -107,7 +107,11 @@ def generate_pdfs(
     from pathlib import Path
 
     repo = Path(repo_dir.path) / "repo"
-    sys.path.insert(0, str(repo / "workshop"))
+    # This fork keeps optional examples separate; upstream uses workshop/.
+    scripts = repo / "examples"
+    if not (scripts / "generate_sekki_pdfs.py").exists():
+        scripts = repo / "workshop"
+    sys.path.insert(0, str(scripts))
 
     out = Path(pdf_dir.path)
     out.mkdir(parents=True, exist_ok=True)
@@ -123,7 +127,7 @@ def generate_pdfs(
 
     env = {**os.environ, "SEKKI_PDF_OUT": str(out), "NOTO_FONT_PATH": font_path}
     result = subprocess.run(
-        [sys.executable, str(Path(repo) / "workshop" / "generate_sekki_pdfs.py")],
+        [sys.executable, str(scripts / "generate_sekki_pdfs.py")],
         cwd=repo, env=env, capture_output=True, text=True,
     )
     print(result.stdout)

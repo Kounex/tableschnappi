@@ -23,7 +23,7 @@ def run_cases(variant):
         raise ValueError('Choose baseline or candidate')
     base = os.environ['RESTAURANT_API_URL'].rstrip('/')
     selected = str(active_prompt().version)
-    cases = json.loads((Path(__file__).parent / 'data/restaurant-cases.json').read_text())
+    cases = json.loads((Path(__file__).with_name('restaurant-cases.json')).read_text())
     rows = []
     mlflow.set_experiment('restaurant-workshop-comparison')
     with mlflow.start_run(run_name=f'{variant}-prompt-v{selected}'):

@@ -1,7 +1,11 @@
-# Explore the restaurant with MLflow
+# Start here: explore the restaurant with MLflow
 
 Your instructor provides your account, restaurant URL, OpenShift AI URL and
 MLflow URL. Use your own project/workspace, `tableschnappi-userNN`.
+Read the numbered guides in order. Open `comparison.ipynb` only when steps
+02 and 04 tell you to; `helpers/` contains implementation files you do not need
+to open or run.
+
 Keep the restaurant, MLflow and your workbench open in separate tabs. Use
 synthetic data. The learning loop is **predict → chat → inspect → change → compare**.
 
@@ -10,12 +14,12 @@ synthetic data. The learning loop is **predict → chat → inspect → change �
 | Time | Exercise | What to look for |
 |---|---|---|
 | 0–5 min | Sign in, open the restaurant, MLflow workspace and workbench | All three belong to your `userNN` project |
-| 5–17 min | [Follow three chat turns](mlflow-tracing-workshop.md) | Clarification, a menu tool call, and uncertainty about unavailable information |
-| 17–22 min | [Rate an answer and inspect its feedback](mlflow-tracing-workshop.md#3-give-feedback) | Technical success and answer quality are different |
-| 22–27 min | [Record the five-case baseline](mlflow-evaluation-workshop.md#1-record-the-baseline) in the notebook | Save evidence before changing anything |
-| 27–40 min | [Create and activate a system-prompt version](mlflow-prompts-workshop.md) in MLflow | Repeat a question; find the new version and changed instructions in its trace |
-| 40–50 min | [Record the candidate and compare](mlflow-evaluation-workshop.md#2-record-the-candidate) | Inspect several answers and tool choices, not just the best example |
-| 50–57 min | Optional: [try a guardrail](guardrails-workshop.md), steps 2–4 with an instructor-prepared policy | A guard block takes a different execution path from an agent refusal |
+| 5–17 min | [Follow three chat turns](01-traces.md) | Clarification, a menu tool call, and uncertainty about unavailable information |
+| 17–22 min | [Rate an answer and inspect its feedback](01-traces.md#3-give-feedback) | Technical success and answer quality are different |
+| 22–27 min | [Record the five-case baseline](02-baseline.md) in the notebook | Save evidence before changing anything |
+| 27–40 min | [Create and activate a system-prompt version](03-prompts.md) in MLflow | Repeat a question; find the new version and changed instructions in its trace |
+| 40–50 min | [Record the candidate and compare](04-compare.md) | Inspect several answers and tool choices, not just the best example |
+| 50–57 min | Optional: [try a guardrail](05-guardrails.md), steps 2–4 with an instructor-prepared policy | A guard block takes a different execution path from an agent refusal |
 | 57–60 min | Restore the baseline and share one finding | Keep versions, traces and comparisons as evidence |
 
 Keep the candidate active until its comparison batch finishes. Leave guardrails
@@ -39,8 +43,7 @@ the agent still executes in the restaurant stack. The notebook neither runs a
 replacement agent nor changes the alias. Reservation checks enforced in code
 remain in place when you edit the prompt.
 
-This guided notebook differs from the independent-agent examples elsewhere in
-the repository. Use `mlflow-evaluation.ipynb` for this lab.
+Use `comparison.ipynb` for this lab.
 
 ## Finish and restore
 
