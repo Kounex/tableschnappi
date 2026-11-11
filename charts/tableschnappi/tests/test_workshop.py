@@ -41,6 +41,7 @@ class WorkshopTests(unittest.TestCase):
             self.assertEqual(notebook["metadata"]["annotations"]["opendatahub.io/mlflow-instance"], "mlflow")
             self.assertEqual(notebook["metadata"]["annotations"]["opendatahub.io/username"], user)
             self.assertEqual(notebook["spec"]["template"]["spec"]["serviceAccountName"], user)
+            self.assertEqual(notebook["spec"]["template"]["spec"]["containers"][0]["name"], user)
             self.assertFalse(by_kind(objects, "DataSciencePipelinesApplication"))
             self.assertFalse(any("import-pipeline" in obj["metadata"]["name"] for obj in objects))
             for binding in by_kind(objects, "RoleBinding"):

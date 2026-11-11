@@ -99,7 +99,7 @@ spec:
           securityContext:
             {{- include "tableschnappi.securityContext" . | nindent 12 }}
       containers:
-        - name: workbench
+        - name: {{ include "tableschnappi.workbenchName" . }}
           image: {{ .Values.workbench.image }}
           imagePullPolicy: Always
           workingDir: /opt/app-root/src
