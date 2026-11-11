@@ -12,8 +12,11 @@ on:
       - "packages/**"
 
 env:
-  REGISTRY: quay.io
-  ORG: tableschnappi
+  REGISTRY: ghcr.io
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build:
@@ -63,13 +66,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Quay.io
+      - name: Select this fork's image namespace
+        run: echo "ORG=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Log in to this repository's GitHub Container Registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker meta (tags + labels)
         id: meta

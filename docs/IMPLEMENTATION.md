@@ -6,6 +6,13 @@ There are two separate changes: the earlier multi-user Helm work (commit
 The application changes require new container images; a Git pull alone cannot
 update a running restaurant.
 
+The fork's image workflow publishes on `main` to `ghcr.io/kounex/…`, using
+this repository's GitHub token. Pull requests build without publishing. The
+inherited shared Quay destination is removed from this workflow. Deploy using
+the resulting image digests in site values, not an assumption that the old
+upstream images contain this fork's changes. Make workshop packages pullable
+by the cluster, either publicly or with the chart's imagePullSecrets setting.
+
 ## 1. Helm is the participant application installer
 
 Helm substitutes values into the YAML under `charts/tableschnappi/templates/`.

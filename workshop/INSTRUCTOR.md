@@ -3,6 +3,9 @@
 Use `charts/tableschnappi/values-multi-user.yaml` with your site values. Build
 frontend, backend and assistant from the workshop revision and supply their
 image digests; changing the source checkout does not rebuild running images.
+The fork publishes its own images under `ghcr.io/kounex/` on main pushes;
+PR builds do not publish. Ensure those packages are public or supply pull
+credentials through the chart's imagePullSecrets before installing.
 The MCP image is unchanged. The platform/project prerequisites remain in the
 chart README and your environment runbook.
 
