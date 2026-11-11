@@ -1,6 +1,6 @@
 # Guided lab validation
 
-Checked locally on 2026-11-11. This is not an event-cluster deployment report.
+Local and event-cluster checks recorded on 2026-11-11.
 
 | Check | Result |
 |---|---|
@@ -16,8 +16,8 @@ Checked locally on 2026-11-11. This is not an event-cluster deployment report.
 The local integration used the actual application services and a deterministic
 OpenAI-compatible **model stub**. Its answers and token counts are synthetic;
 it cannot establish Qwen quality or production latency. The local tracking
-server used plain localhost authentication; OpenShift service-account injection
-and workspace authorization still need testing on the event cluster.
+server used plain localhost authentication; The separate real-cluster checks below cover OpenShift injection and workspace
+authorization; the local stub results remain distinct.
 
 Screenshots from that local test (not Qwen/event-cluster results):
 
@@ -47,16 +47,36 @@ helm template lab charts/tableschnappi \
 The new `mlflow-lab.yml` workflow runs builds/type checking and the regression
 suites. Existing project CI remains separate.
 
-## Before the event
+## Real event-cluster pilot
 
-- Build/publish the workshop images and pin them in the site values.
-- Recreate a two-participant pilot with fresh workbench content and verify its
-  installed notebook dependencies before creating all 50 workbenches.
-- Rehearse with the actual Qwen API and operator-managed MLflow server, normal
-  participant browser SSO, and cross-workspace denial.
-- Verify warmed NeMo allowed/blocked requests and restore through the Console.
-- Test simultaneous external-model quota/capacity, participant reset and final
-  teardown. Ten evaluation turns per attendee alone means 500 app turns.
+The pilot uses `user1` / `tableschnappi-user1`, the real Qwen API,
+RHOAI 3.5.2 and operator-managed MLflow 3.14.0. The prepared workbench runs
+MLflow SDK 3.17.1 with native `kubernetes-namespaced` authentication.
 
-These remain pending: the saved event-cluster login was expired during this
-work. No cluster resources or event data were changed by this implementation.
+| Check | Result |
+|---|---|
+| Single account through the batch command, range `1 1` | Created; repeat preserves its password; other accounts not created |
+| Normal participant browser SSO | Pass; MLflow lists only the participant workspace |
+| Foreign experiment read through that browser session | `403 PERMISSION_DENIED`; searches filter inaccessible experiments |
+| Native workbench integration | Pass; annotation injects connection/auth settings, verified TLS, preinstalled dependencies |
+| Workbench browser | Opens through OpenShift auth without a Jupyter token; setup cell prints own workspace and active prompt version |
+| Real restaurant comparisons | Five baseline and five candidate cases, two stored comparison artifacts, correct prompt versions/lineage, session metadata, persisted feedback and baseline restore |
+| Candidate diagnostic outcome | Requested sections in 4/5 answers; the stock question remains a useful comparison, not a guaranteed formatting success |
+| Guardrails | Warmed menu request allowed; coding/homework blocked at Input Guard, with no agent/tool spans and no fail-open |
+| Participant policy permissions | Own ConfigMap update and Deployment restart permitted using the participant's RBAC |
+| Unused AI asset | Disabled in the profile; application still uses endpoint/model values plus the existing Secret |
+
+The restaurant comparison/guard checks execute in the workbench under its
+service account. Browser SSO and direct foreign-experiment denial exercise the
+human account separately. They are distinct identities with namespace-local
+permissions. The baseline prompt and empty policy are restored for testing.
+
+## Remaining event gates
+
+- Provision the remaining attendee accounts and recreate remaining legacy
+  participant stacks before scaling the new profile to all 50 users.
+- Rehearse simultaneous external-model quota/capacity: ten comparison turns
+  per attendee already means 500 app turns, plus model/tool/guard calls.
+- Rehearse the complete shared-platform install and final uninstall on a
+  disposable matching cluster; the active event cluster has not been uninstalled.
+- If event history matters, test coordinated database/artifact backup and restore.

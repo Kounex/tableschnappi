@@ -3,8 +3,8 @@
 The multi-user chart changes (`d030c5f`) and
 [the guided lab PR](https://github.com/Kounex/tableschnappi/pull/1) are merged into
 `Kounex/tableschnappi` main. The lab merge is `9c7c638`. Stefan's fork remains
-upstream and its chart PR is separate. The new fork release still needs an
-event-cluster rollout and rehearsal; merged code does not update running pods.
+upstream and its chart PR is separate. A real `user1` pilot has been deployed and rehearsed on the event cluster.
+The remaining accounts and a 50-user capacity rehearsal are separate steps.
 
 ## The pitch in one minute
 
@@ -53,18 +53,20 @@ projects; this application chart installs into that foundation.
 
 | Runbook files | What they define | Why we chose it |
 |---|---|---|
-| `manifests/00-platform/` | Operator Subscription/OperatorGroup, managed DataScienceCluster components and dashboard configuration | OpenShift AI and the MLflow operator are reconciled by operators. The desired Subscription uses Automatic approval on `stable-3.5` |
+| `manifests/00-platform/` | Operator Subscription/OperatorGroup, managed DataScienceCluster components | OpenShift AI and the MLflow operator are reconciled by operators. The desired Subscription uses Automatic approval on `stable-3.5` |
 | `manifests/10-images/`, `config/` | Git BuildConfigs with explicit Dockerfile/context paths, source commit and image locks | Builds have reviewable inputs; deployments can select immutable image digests |
 | `manifests/20-mlflow/` | MLflow custom resource, PostgreSQL/PVC and ODF object-bucket storage | Share tracking metadata/artifacts across the event instead of installing 50 tracking servers |
-| `manifests/30-participant/project/` | Namespace, service account, RoleBindings, quota, limits, ingress policy and image-pull grant | Repeatable separation and resource boundaries for `user1`–`user50`; project labels enable OpenShift AI discovery |
+| `manifests/30-participant/project/` | Namespace, quota, limits, ingress policy and image-pull grant; the chart owns participant identities and RoleBindings | Repeatable separation and resource boundaries for `user1`–`user50`; project labels enable OpenShift AI discovery |
 | Participant model configuration | External endpoint/model parameters and a namespace-local model Secret | Reuse the provided model API directly; unused AI asset registration has been removed from the lab |
-| `scripts/` and `scripts/helpers/` | Thin batch entry commands, native `oc process` into server-side apply, Secret bootstrap and waits | Apply templates directly for a user range without generating 50 manifest trees; persistent configuration stays in YAML |
+| `scripts/` and `scripts/helpers/` | Thin batch entry commands, native `oc process` into server-side apply, Helm installation, Secret bootstrap and waits | Apply templates directly for a user range without generating 50 manifest trees; persistent configuration stays in YAML |
 | `docs/TEARDOWN.md` | Exercise reset, participant deletion and full platform/storage removal | State clearly what is retained, including notebook PVCs and shared MLflow history |
 
-Those runbook definitions include changes not yet reconciled onto the older live
-deployment. In particular, its source lock still selects the earlier Stefan
-revision. Moving to the merged fork requires new image/source selections and a
-two-user delete/recreate pilot before applying the full roster.
+The runbook now pins this fork's chart and prepared workbench source, with a
+separate image-build commit and immutable image digests. Native project YAML
+is applied first; `helm upgrade --install` owns the restaurant and workbench.
+The same range-based commands can prepare one pilot or the full roster.
+Existing plain-YAML participant stacks require explicit deletion/recreation
+before Helm, so two installers never own the same workload.
 
 The lab does not create an AI asset registration: it was a discovery entry
 outside the request path, with no role in the attendee exercises. The restaurant
@@ -106,7 +108,7 @@ The multi-user chart change adds these capabilities:
 
 A RoleBinding refers to a ClusterRole but grants it only in the binding's
 namespace. It is not a ClusterRoleBinding. The workbench container name must
-also match the Notebook name: the native MLflow webhook locates that container
+also match the Notebook name: the native MLflow controller locates that container
 by name before injecting the connection/authentication environment. The chart
 now follows that platform convention. Jupyter also receives the same
 `NOTEBOOK_ARGS` as a dashboard-created workbench: the platform gateway/RBAC proxy
@@ -120,8 +122,8 @@ grants, the identity provider and shared MLflow. A namespace needs the project
 label `opendatahub.io/dashboard: "true"` for OpenShift AI discovery.
 
 Copy `values-multi-user.yaml` to ignored `my-values.yaml`, then set your site
-values: domain, model endpoint/name, Secret name/key, tracking/UI URLs, four
-image digests and the workbench source commit. Use newly built images for the
+values: domain, model endpoint/name, Secret name/key, tracking/UI URLs, four application
+image digests, the prepared workbench image digest and workbench source commit. Use newly built images for the
 three changed services; the MCP code is unchanged.
 
 Create the model Secret from a private file after creating the namespace:
@@ -334,8 +336,32 @@ cross-project grants and shared MLflow history are external. Namespace recreatio
 does not delete shared prompt versions/aliases/traces. Full shared metadata and
 artifact deletion belongs to the platform teardown runbook.
 
-## 8. What has been validated
+## 8. Fixes found during the real cluster rehearsal
 
-See [VALIDATION.md](VALIDATION.md) for exact checks and remaining deployment gates.
-The local model used for integration/browser checks is a deterministic stub;
-those checks prove plumbing, not Qwen response quality or event-cluster capacity.
+| Change | Technical detail | Effect / manual equivalent |
+|---|---|---|
+| Prepared workbench | `workshop/helpers/Dockerfile.workbench` installs pinned MLflow Kubernetes authentication and comparison dependencies | Build once and set `workbench.image` to its digest; attendees can run the notebook immediately |
+| Native MLflow injection | The main container name must equal the Notebook name, and `metadata.annotations` selects `mlflow` | The ODH notebook controller injects `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_AUTH` and the token audience. Check the rendered Notebook rather than pasting tokens |
+| Native Jupyter startup | `NOTEBOOK_ARGS` supplies port, empty Jupyter token/password and the notebook base URL; omit `NOTEBOOK_BASE_URL`, which the image would turn into a duplicate argument | OpenShift gateway and RBAC proxy authenticate the workbench. Jupyter opens without a second login; duplicate base URL arguments prevent startup |
+| Verified workbench TLS | Removed `MLFLOW_TRACKING_INSECURE_TLS` from the notebook | The native gateway certificate validates normally; no insecure setting is needed for this connection |
+| Consistent participant names | Chart profile, tests and docs use `user1`–`user50` | The namespace is `tableschnappi-user1`, Notebook/service account `user1`, and human RoleBinding subject `user1` |
+| Unused model registration removed | `genaiStudio.enabled: false` in the event profile | Endpoint/model values and the Secret still configure the actual services; the discovery-only ConfigMap is absent |
+
+A first bad Jupyter specification was corrected in the chart. Its already
+crashing StatefulSet pod needed one deletion so the controller could recreate
+it from the corrected template. Fresh installs use the corrected YAML.
+
+## 9. What has been validated
+
+The real event-cluster pilot used Qwen, operator-managed MLflow 3.14.0 and the
+prepared workbench SDK 3.17.1. `user1` signed in through the normal browser SSO,
+opened Jupyter and executed the notebook setup cell. Five baseline and five
+candidate requests stored real application traces, linked prompt versions,
+feedback and two comparison artifacts; baseline activation was restored.
+The warmed guardrail allowed the menu question and blocked the coding/homework
+question before the agent/tools ran, with no fail-open outcome. Direct access
+to a different participant's experiment returned `403 PERMISSION_DENIED`.
+
+See [VALIDATION.md](VALIDATION.md) for exact checks and remaining gates. These
+single-participant results establish functionality, not 50-user external-model
+quota or concurrency capacity. Only one attendee account has been provisioned.
