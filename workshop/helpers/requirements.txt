@@ -1,5 +1,6 @@
 # Direct dependencies for the guided lab, preinstalled by the instructor.
 # The assistant container retains its separate, fully resolved requirements.txt.
 mlflow[kubernetes]==3.17.1
-pandas==3.0.6
-requests==2.34.2
+# Match the pinned RHOAI base: Feast requires pandas<3, KFP pins requests.
+pandas==2.3.3
+requests==2.33.0
