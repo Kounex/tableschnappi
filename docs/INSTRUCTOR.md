@@ -16,11 +16,12 @@ Required profile inputs:
   `/mlflow` prefix, without a hash fragment). Trace links use normal browser SSO.
 - `assistant.promptUri: prompts:/restaurant-assistant-prompt@active` and
   `assistant.promptCacheTtlSeconds: 0` for immediate workshop activation.
-- Workbench source repository/ref pinned to the workshop commit and notebook
-  dependencies from `workshop/helpers/requirements.txt` preinstalled. In each fresh workbench,
-  run `python -m pip install -r tableschnappi/workshop/helpers/requirements.txt` before
-  the event, or bake those dependencies into the selected workbench image.
-  Attendees should not spend their hour installing packages.
+- Workbench source repository/ref pinned to the workshop commit and a lab
+  workbench image with dependencies preinstalled. Build
+  `workshop/helpers/Dockerfile.workbench` using `workshop/helpers/` as context,
+  then set `workbench.image` to its resolved image digest. The environment
+  runbook supplies an OpenShift Git BuildConfig for this image. No participant
+  pip install is required.
 - Guardrails deployed, `shieldsEnabled: true`, and the initial empty input
   policy. This matches the existing guardrails guide; checks still add model
   traffic even before a blocking policy is enabled.

@@ -258,9 +258,11 @@ with the case/variant, and logs a table and simple metrics in
 `restaurant-workshop-comparison`. This is a small comparison using MLflow runs,
 not an LLM judge or a separate implementation of the restaurant agent.
 
-Install `workshop/helpers/requirements.txt` in the workbench before the session,
-or bake it into the selected workbench image; the instructor guide provides
-the command. These packages do not replace the native injected authentication.
+`workshop/helpers/Dockerfile.workbench` adds the pinned lab requirements to the
+RHOAI data-science workbench image. The environment runbook builds it through
+OpenShift and supplies its digest as `workbench.image`, so opening the notebook
+does not require a manual package install. These packages do not replace the
+native injected authentication.
 
 The notebook reads the alias; it never publishes or activates prompts. Run the
 baseline batch, change active in the MLflow UI, then run the candidate batch.

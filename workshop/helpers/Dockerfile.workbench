@@ -1,0 +1,7 @@
+# RHOAI data-science workbench plus the tested guided-lab dependencies.
+# OpenShift builds this using the cluster's Red Hat registry entitlement.
+FROM registry.redhat.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:f69af2080601644b322ca63a3ca38a6dde2cca0b567681c39767e150a0194c0e
+USER 1001
+COPY requirements.txt /tmp/restaurant-lab-requirements.txt
+RUN python -m pip install --no-cache-dir --index-url https://pypi.org/simple -r /tmp/restaurant-lab-requirements.txt \
+    && python -c "import mlflow, pandas, requests; import mlflow.genai; print(mlflow.__version__)"
