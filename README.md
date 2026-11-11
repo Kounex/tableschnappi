@@ -613,3 +613,13 @@ Secret are removed by Helm. Supplied Secrets, shared MLflow/storage and external
 image-pull grants remain the platform administrator's responsibility. Inspect
 failed/retained hook Jobs before removing the project. Shared Gen AI Studio MCP
 registration must stay disabled for per-participant releases.
+
+## Guided MLflow lab
+
+Start with [the attendee exercises](workshop/README.md) for traces, feedback,
+native prompt versions and an end-to-end comparison. Instructors should read
+[preparation and reset](workshop/INSTRUCTOR.md). This lab uses each participant's
+restaurant and namespace-scoped MLflow workspace; no extra MCP server is needed.
+
+For the technical walkthrough, including manual Helm installation, prompt
+activation and reset, read [what changed and why](docs/IMPLEMENTATION.md).

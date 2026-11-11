@@ -178,3 +178,24 @@ Hint: make the competitor rule explicit and ensure that your general instruction
 to allow restaurant questions does not override it. Repeat the earlier tests
 to check that the original topic restrictions still work.
 
+
+## Inspect the change in MLflow
+
+For the timed MLflow lab, complete steps 2–4 with your instructor's prepared
+policy; keep the full prompt suite and competitor challenge for extra time.
+Your instructor enables the assistant's shield path and warms NeMo first.
+A ready pod alone does not guarantee that its first model request is warm.
+
+Open the same allowed and blocked questions' traces in
+`restaurant-chatbot-traces`. Expand **Input Guard** / **Output Guard** and inspect
+`guardrails.outcome`: `skipped`, `allowed`, `blocked`, or `error_fail_open`.
+A blocked input should prevent the agent/tool stages. An agent refusal alone
+is not evidence of a NeMo block. NeMo can call the model during its own check;
+those internal calls are not separately instrumented here.
+
+Before editing, copy the original `config.yaml` and `rails.co` values to your
+notes. To restore, put those values back through the Console, restart the
+NeMo Deployment, and ask your instructor to warm it before retesting. If you
+started from the default empty policy, input flows should again be `[]`.
+Do not delete your namespace or comparison traces. Return the restaurant
+prompt's `active` alias to `baseline` if you changed it in the prompt exercise.

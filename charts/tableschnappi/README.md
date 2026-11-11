@@ -85,10 +85,10 @@ project without an existing UI-managed endpoint registry.
 `genaiStudio.enabled` remains off in the multi-user profile because its existing
 MCP registration is a shared singleton. No MaaS/Kuadrant gateway is installed.
 
-`guardrails.enabled: true` keeps NeMo available; `shieldsEnabled: false` starts
-the assistant without shields for the exercise. Its local assistant-settings
-ConfigMap controls `GUARDRAILS_ENABLED`; restart that assistant after changing it.
-The upstream main branch's empty initial NeMo policy is preserved. After enabling
+`guardrails.enabled: true` keeps NeMo available. The multi-user profile sets
+`shieldsEnabled: true` and retains the empty initial NeMo policy, matching
+`workshop/guardrails-workshop.md`. Its assistant-settings ConfigMap controls
+`GUARDRAILS_ENABLED`; restart the assistant after changing that setting. After enabling
 policies/restarting NeMo, warm it with allowed/blocked requests before a chat and
 inspect traces/logs for fail-open: the existing 15-second timeout/fail-open policy
 and workshop TLS settings are unchanged by this chart PR.
@@ -140,3 +140,12 @@ Regression checks need PyYAML and Helm, and cover all 50 namespaces, token/key
 consumers, normal resource ownership/post-hook order, MLflow opt-out, notebook
 source pin/retry/edit preservation and prompt seed preservation/error handling.
 Cluster admission tests do not replace a full install/upgrade/uninstall rehearsal.
+
+### Guided MLflow workshop
+
+The multi-user profile supports the [attendee lab](../../workshop/README.md).
+It uses native MLflow prompt versions and an `active` alias, with alias caching
+set to zero for the lab. `rhoai.mlflowUiUrl` supplies browser trace links; it is
+separate from the tracking URI. Missing UI configuration leaves a copyable
+trace ID. Follow [instructor preparation](../../workshop/INSTRUCTOR.md) before
+allocating the roster. Existing workbench content is preserved on upgrades.

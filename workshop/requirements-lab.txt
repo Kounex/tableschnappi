@@ -1,0 +1,5 @@
+# Direct dependencies for the guided lab, preinstalled by the instructor.
+# The assistant container retains its separate, fully resolved requirements.txt.
+mlflow[kubernetes]==3.17.1
+pandas==3.0.6
+requests==2.34.2
