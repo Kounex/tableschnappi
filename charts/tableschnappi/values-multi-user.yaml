@@ -36,7 +36,7 @@ workbench:
     enabled: false
   image: registry.redhat.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:f69af2080601644b322ca63a3ca38a6dde2cca0b567681c39767e150a0194c0e
   repoUrl: https://github.com/Kounex/tableschnappi.git
-  repoRef: 9c258b923d16583dae988daf52e0b94e00e7878d
+  repoRef: 5e4396649a7dbef871a2745781733585c77683d1
 guardrails:
   enabled: true
   # Match workshop/05-guardrails.md: shields connected, NeMo input policy initially empty.
