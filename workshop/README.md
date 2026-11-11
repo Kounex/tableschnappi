@@ -14,19 +14,20 @@ synthetic data. The learning loop is **predict → chat → inspect → change �
 | Time | Exercise | What to look for |
 |---|---|---|
 | 0–5 min | Sign in, open the restaurant, MLflow workspace and workbench | All three belong to your `userNN` project |
-| 5–17 min | [Follow three chat turns](01-traces.md) | Clarification, a menu tool call, and uncertainty about unavailable information |
-| 17–22 min | [Rate an answer and inspect its feedback](01-traces.md#3-give-feedback) | Technical success and answer quality are different |
-| 22–27 min | [Record the five-case baseline](02-baseline.md) in the notebook | Save evidence before changing anything |
-| 27–40 min | [Create and activate a system-prompt version](03-prompts.md) in MLflow | Repeat a question; find the new version and changed instructions in its trace |
-| 40–50 min | [Record the candidate and compare](04-compare.md) | Inspect several answers and tool choices, not just the best example |
-| 50–57 min | Optional: [try a guardrail](05-guardrails.md), steps 2–4 with an instructor-prepared policy | A guard block takes a different execution path from an agent refusal |
-| 57–60 min | Restore the baseline and share one finding | Keep versions, traces and comparisons as evidence |
+| 5–15 min | [Follow three chat turns](01-traces.md) | Clarification, a menu tool call, and uncertainty about unavailable information |
+| 15–18 min | [Rate an answer and inspect its feedback](01-traces.md#3-give-feedback) | Technical success and answer quality are different |
+| 18–23 min | [Record the five-case baseline](02-baseline.md) in the notebook | Save evidence before changing anything |
+| 23–33 min | [Create and activate a system-prompt version](03-prompts.md) in MLflow | Repeat a question; find the new version and changed instructions in its trace |
+| 33–40 min | [Record the candidate and compare](04-compare.md) | Inspect several answers and tool choices, not just the best example |
+| 40–55 min | [Enable and test guardrails](05-guardrails.md), steps 1–5 | Edit the policy, restart/warm NeMo, and compare allowed/blocked requests and traces |
+| 55–60 min | Restore the baseline and share one finding | Keep versions, traces and comparisons as evidence |
 
 Keep the candidate active until its comparison batch finishes. Leave guardrails
-unchanged for both batches. Before the optional guardrail exercise, return the
-prompt to baseline and keep it fixed while comparing policy behavior. If time
-is short, skip the optional guardrail branch.
-The full guardrails guide and competitor challenge can be completed afterwards.
+unchanged for both batches. Before the guardrail exercise, return the prompt
+to baseline and keep it fixed while comparing policy behavior. Guardrails are
+a normal part of this lab. Use one comparison batch per version and inspect
+one representative difference to protect the full 15-minute guardrail slot.
+Additional test questions and the competitor challenge are optional extensions.
 
 ## What runs where?
 
@@ -54,7 +55,8 @@ Do not delete your namespace, workbench or MLflow history.
 
 You have completed the core lab when you can show a tool span, identify the
 prompt version, find persisted feedback, and explain a baseline/candidate
-difference using the same test question.
+difference using the same test question. You should also be able to demonstrate
+one allowed and one guard-blocked request and identify their different trace paths.
 
 In the workbench, open `tableschnappi/workshop/`. Dependencies, the model and
 MLflow authentication should already be configured. Ask your instructor if a

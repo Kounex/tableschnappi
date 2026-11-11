@@ -12,11 +12,13 @@ Keep the active alias and guardrail policy unchanged while it runs. The helper
 never publishes a prompt or moves an alias. It stops if the app uses a fallback,
 a different prompt version, or returns a trace that cannot be read.
 
-## 2. Compare the evidence
+## 2. Compare the evidence (about three minutes)
 
 In MLflow's **restaurant-workshop-comparison** experiment, select your baseline
 and candidate runs. Compare the tool-expectation rate, section-format rate and
-mean duration. Open **comparison.json** and follow the restaurant trace links.
+mean duration. Open **comparison.json** and follow one baseline/candidate trace
+pair for a representative question. Record one improvement or regression; keep
+further exploration for after the session so the guardrails exercise has time.
 
 These are diagnostic checks, not factual-accuracy scores. A tool expectation
 can be wrong, and latency includes the app's HTTP request path. Assess quality
@@ -36,6 +38,5 @@ In MLflow, move **active** back to the version selected by **baseline**. Start a
 New chat and check that the original prompt version appears. Keep the candidate
 versions, feedback and comparison runs as evidence.
 
-**Optional next:** [05 — Try a guardrail](05-guardrails.md). Keep the baseline
+**Next:** [05 — Enable and test guardrails](05-guardrails.md). Keep the baseline
 prompt fixed during that exercise so you can isolate the policy's effect.
-Otherwise [finish and wrap up](README.md#finish-and-restore).

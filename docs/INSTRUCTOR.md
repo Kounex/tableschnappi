@@ -36,8 +36,12 @@ Use the [chronological attendee flow](../workshop/README.md#your-hour). Record t
 baseline before participants activate a candidate, and defer restoration until
 the candidate batch finishes. Keep the same NeMo policy for both prompt batches.
 Explain that MLflow stores/activates the system prompt, the restaurant executes
-the agent, and the notebook only drives test requests. Skip the optional guardrail
-branch if a group needs more time for the core comparison.
+the agent, and the notebook only drives test requests. Reserve minutes 40–55
+for your colleague's guardrails exercise, including policy editing, rollout,
+warmup and trace inspection. Keep the comparison to one batch per version and
+one representative trace pair. If the group is running late, shorten additional
+question exploration; guardrails remain a required step. Only the wider test
+suite and competitor challenge are optional.
 
 1. As two real participants, follow `workshop/README.md`; check own-workspace logging
    and foreign-workspace denial. Test trace links with normal browser login.
