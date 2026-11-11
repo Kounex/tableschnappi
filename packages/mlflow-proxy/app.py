@@ -4,7 +4,7 @@ Tableschnappi Python Assistant Service
 Responsibilities:
   1. LangGraph agent (Input Guard -> LLM Agent -> Tool Auth -> Tool Execution -> Output Guard)
      handling the tool-calling conversation loop
-  2. Loads system prompt from MLflow Prompt Registry (@latest version)
+  2. Loads one system prompt per turn from MLflow Prompt Registry
   3. Logs every turn as a GenAI Trace in MLflow via mlflow.langchain.autolog()
      + @mlflow.trace, with one named span per graph node
   4. Also proxies /v1/chat/completions for the workshop notebook (direct vLLM access)
@@ -19,7 +19,9 @@ import logging
 import os
 import re
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from datetime import datetime
+from urllib.parse import quote, urlencode
 
 import httpx
 import mlflow
@@ -49,6 +51,11 @@ BACKEND_URL  = os.environ.get("BACKEND_URL",
                               "http://tableschnappi-backend.tableschnappi.svc.cluster.local:3001")
 EXPERIMENT   = os.environ.get("MLFLOW_EXPERIMENT", "restaurant-chatbot-traces")
 MODEL_NAME   = os.environ.get("VLLM_MODEL", "")
+PROMPT_URI   = os.environ.get("PROMPT_URI", "prompts:/restaurant-assistant-prompt@latest")
+MLFLOW_UI_URL = os.environ.get("MLFLOW_UI_URL", "").rstrip("/")
+EXPERIMENT_ID = None
+# Thread-local turn details: concurrent requests must never share prompt metadata.
+_turn_details = ContextVar("turn_details", default=None)
 API_KEY      = os.environ.get("OPENAI_API_KEY", "EMPTY")
 # Whether a NeMo Guardrails deployment sits at UPSTREAM_URL. When false the
 # input/output shields are skipped; UPSTREAM_URL is still used by the
@@ -361,6 +368,7 @@ def execute_tool(name: str, args: dict, slug: str) -> str:
             log.error("Tool %s failed: %s", mcp_name, e)
             err = json.dumps({"error": "Tool execution failed. Please try again."})
             span.set_outputs({"error": str(e)})
+            span.set_status(mlflow.entities.SpanStatus(mlflow.entities.SpanStatusCode.ERROR))
             return err
 
 
@@ -441,6 +449,10 @@ def _query_sekki_context(sekki_romaji: str) -> str:
 # ── System prompt loader ───────────────────────────────────────────────────────
 
 def load_system_prompt() -> str:
+    details = _turn_details.get()
+    if details is not None and "system_prompt" in details:
+        return details["system_prompt"]
+    prompt_info = {"uri": PROMPT_URI, "status": "fallback"}
     now = datetime.now()
 
     # Current sekki
@@ -469,7 +481,7 @@ def load_system_prompt() -> str:
         base = FALLBACK_PROMPT
     else:
         try:
-            prompt = mlflow.genai.load_prompt("prompts:/restaurant-assistant-prompt@latest")
+            prompt = mlflow.genai.load_prompt(PROMPT_URI)
             template = prompt.template
             if isinstance(template, list):
                 template = template[0].get("content", str(template[0])) if template else ""
@@ -477,6 +489,8 @@ def load_system_prompt() -> str:
                 date=now.strftime("%A, %d %B %Y"),
                 time=now.strftime("%H:%M"),
             )
+            prompt_info = {"uri": PROMPT_URI, "name": prompt.name,
+                           "version": str(prompt.version), "status": "registry"}
         except Exception as e:
             log.warning("Prompt registry unavailable (%s) — using fallback", e)
             base = FALLBACK_PROMPT
@@ -495,7 +509,16 @@ def load_system_prompt() -> str:
             time=now.strftime("%H:%M"),
         )
 
-    return base + sekki_block
+    rendered = base + sekki_block
+    if details is not None:
+        details.update(system_prompt=rendered, prompt=prompt_info)
+    if MLFLOW_URI:
+        mlflow.update_current_trace(tags={
+            "prompt.uri": PROMPT_URI,
+            "prompt.status": prompt_info["status"],
+            "prompt.version": prompt_info.get("version", "none"),
+        })
+    return rendered
 
 
 # ── Guardrails shield calls ─────────────────────────────────────────────────────
@@ -510,7 +533,10 @@ def _shield_check(text: str) -> tuple:
     # No guardrails deployment (the minimal Compose/MaaS setups). Skip the
     # call rather than spend a model round-trip per turn on a check that
     # cannot return a refusal.
+    span = mlflow.get_current_active_span() if MLFLOW_URI else None
     if not text or not SHIELD_ENABLED:
+        if span:
+            span.set_attribute("guardrails.outcome", "skipped")
         return False, ""
     try:
         resp = httpx.post(
@@ -526,9 +552,15 @@ def _shield_check(text: str) -> tuple:
         content = resp.json()["choices"][0]["message"]["content"]
     except Exception as e:
         log.warning("Guardrails shield check failed (%s) — failing open", e)
+        if span:
+            span.set_attribute("guardrails.outcome", "error_fail_open")
         return False, ""
     if GUARDRAILS_REFUSAL_MARKER in content:
+        if span:
+            span.set_attribute("guardrails.outcome", "blocked")
         return True, content
+    if span:
+        span.set_attribute("guardrails.outcome", "allowed")
     return False, ""
 
 
@@ -845,10 +877,11 @@ def run_assistant(messages: list, session_id: str, slug: str,
         # table is present when the guest is chatting from a QR-code menu
         # (/menu/<slug>/<table>), so traces can be filtered by where in the
         # restaurant the conversation happened.
-        tags = {"session_id": session_id, "restaurant": slug, "model": MODEL_NAME}
+        tags = {"session_id": session_id, "restaurant": slug, "model": MODEL_NAME,
+                "prompt.status": "not_used"}
         if table is not None:
             tags["table"] = str(table)
-        mlflow.update_current_trace(tags=tags)
+        mlflow.update_current_trace(tags=tags, session_id=session_id)
 
     # F-01/F-03/F-05: Only accept user-role messages from the client.
     # Reject forged assistant/system/tool roles that enable prompt injection.
@@ -889,6 +922,7 @@ _REQUIRED_ENV = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global EXPERIMENT_ID
     missing = sorted(k for k, v in _REQUIRED_ENV.items() if not v)
     if missing:
         raise RuntimeError(
@@ -900,7 +934,7 @@ async def lifespan(app: FastAPI):
         )
     if MLFLOW_URI:
         try:
-            mlflow.set_experiment(EXPERIMENT)
+            EXPERIMENT_ID = mlflow.set_experiment(EXPERIMENT).experiment_id
         except Exception as e:
             log.warning("MLflow unavailable at startup (%s) — continuing without tracing", e)
     else:
@@ -921,11 +955,22 @@ MAX_MESSAGES_PER_TURN = 20
 
 def _run_assistant_turn(messages: list, session_id: str, slug: str,
                         table: int | None = None) -> tuple:
-    response, tool_calls = run_assistant(messages, session_id, slug, table)
-    # MLflow's last trace is thread-local; capture it in the same worker
-    # that ran the traced turn so concurrent requests keep their own IDs.
-    trace_id = mlflow.get_last_active_trace_id()
-    return response, tool_calls, trace_id
+    details = {"prompt": {"status": "not_used"}}
+    token = _turn_details.set(details)
+    try:
+        response, tool_calls = run_assistant(messages, session_id, slug, table)
+        trace_id = mlflow.get_last_active_trace_id() if MLFLOW_URI else None
+        return response, tool_calls, trace_id, details["prompt"]
+    finally:
+        _turn_details.reset(token)
+
+
+def trace_url(trace_id):
+    if not (trace_id and MLFLOW_UI_URL and EXPERIMENT_ID):
+        return None
+    query = urlencode({"workspace": os.environ.get("MLFLOW_WORKSPACE", "default")})
+    return (f"{MLFLOW_UI_URL}/#/experiments/{quote(str(EXPERIMENT_ID), safe='')}"
+            f"/traces/{quote(trace_id, safe='')}?{query}")
 
 
 @app.post("/assistant")
@@ -952,7 +997,7 @@ async def assistant(request: Request):
     try:
         # Model, guardrail, MCP, and MLflow calls are synchronous. Keep
         # them off the event loop so health probes can run during a turn.
-        response, tool_calls, trace_id = await asyncio.to_thread(
+        response, tool_calls, trace_id, prompt_info = await asyncio.to_thread(
             _run_assistant_turn, msgs, session, slug, table,
         )
     except Exception as e:
@@ -960,16 +1005,18 @@ async def assistant(request: Request):
         # F-07: Don't leak internal error details to the browser
         return JSONResponse({"error": "Sorry, I'm having trouble right now. Please try again."}, status_code=502)
 
-    return JSONResponse({"response": response, "traceId": trace_id, "toolCalls": tool_calls})
+    return JSONResponse({"response": response, "traceId": trace_id, "toolCalls": tool_calls,
+                         "traceUrl": trace_url(trace_id), "prompt": prompt_info,
+                         "modelName": MODEL_NAME})
 
 
 @app.post("/feedback")
 async def feedback(request: Request):
     body     = await request.json()
     trace_id = body.get("traceId", "")
-    score    = body.get("score", 0)
-    if not trace_id:
-        return JSONResponse({"ok": False, "error": "traceId required"}, status_code=400)
+    score    = body.get("score")
+    if not isinstance(trace_id, str) or not trace_id or type(score) is not int or score not in (0, 1):
+        return JSONResponse({"ok": False, "error": "traceId and score (0 or 1) required"}, status_code=400)
     try:
         from mlflow.entities import AssessmentSource, AssessmentSourceType
         await asyncio.to_thread(
@@ -985,6 +1032,7 @@ async def feedback(request: Request):
         )
     except Exception as e:
         log.warning("Feedback logging failed: %s", e)
+        return JSONResponse({"ok": False, "error": "Feedback was not saved. Please retry."}, status_code=502)
     return JSONResponse({"ok": True})
 
 
@@ -1339,4 +1387,5 @@ def health():
         "ok": True,
         "guardrails_enabled": SHIELD_ENABLED,
         "tracing_enabled": bool(MLFLOW_URI),
+        "modelName": MODEL_NAME,
     }

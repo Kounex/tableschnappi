@@ -1,4 +1,11 @@
-# Keep TableSchnappi on the menu
+# 05 — Keep TableSchnappi on the menu
+
+Step 05 is a normal, 15-minute part of the one-hour lab. Complete steps 1–5:
+observe the unguarded behavior, apply the policy below, restart/warm NeMo, and
+compare the response and MLflow trace. Keep the baseline restaurant prompt
+fixed so you can isolate the policy's effect. Use one off-topic question and
+one menu question before and after; additional cases and the competitor
+challenge are optional extensions.
 
 In this workshop, you will explore an unrestricted restaurant assistant, enable
 a topic guardrail in OpenShift, and compare its responses before and after.
@@ -24,7 +31,9 @@ that a guardrail is active.
 ## 1. Take the assistant off topic
 
 Open the chat in the TableSchnappi app. Send each of these prompts in a fresh
-conversation (reload the app to start a new chat):
+conversation (use **New chat**, or reload the app). For the timed lab, use
+the coding/homework question and “What is on your menu?” as your matched pair;
+the other questions are additional exploration:
 
 1. **General knowledge:** “If an octopus became mayor of the Moon, how many
    handshakes could it give at once? Explain the science behind your answer.”
@@ -50,7 +59,8 @@ requests while allowing restaurant questions and reservation details.
    project your instructor assigned to you.
 3. Find and open your guardrails ConfigMap, normally
    **tableschnappi-guardrails-config**.
-4. Open the **YAML** tab to edit the guardrails policy.
+4. Open the **YAML** tab to edit the guardrails policy. Before changing it,
+   copy the existing `config.yaml` and `rails.co` values to your notes for restore.
 
 In the Console YAML editor, locate `config.yaml: |` under `data`.
 Keep its existing `models` section and `passthrough: true`. Replace the
@@ -110,13 +120,17 @@ request is in scope after guardrails reloads the configuration.
    The Deployment should show **1 of 1** available replicas when complete.
 
 The new pod loads the saved ConfigMap. Wait for this rollout to finish before
-testing; it can take a few minutes.
+testing; it can take a few minutes. Ask your instructor to warm the updated
+NeMo service before testing through the restaurant: a ready pod can still have
+a slow first model request.
 
 ## 4. Test your guardrails
 
-Start a fresh chat for each independent test. Repeat the three funny prompts
-from step 1, then try the following. Record the actual response alongside the
-expected result.
+Start a fresh chat for each independent test. In the timed lab, repeat the
+same coding/homework question and menu question from step 1. The policy should
+block the former and allow the latter. Record the actual results, then inspect
+both traces using the MLflow section below. Use the wider test set below if
+time remains.
 
 | Prompt | Expected result |
 | --- | --- |
@@ -155,7 +169,31 @@ so a working chat alone does not prove the guardrail is healthy. If restaurant
 questions are blocked, refine your policy and retest both allowed and blocked
 cases. Model-based checks can make mistakes; record any failures you find.
 
-## 5. Optional challenge: keep competitors off the menu
+## 5. Inspect the change in MLflow
+
+Complete this trace comparison as part of step 05, after the before/after
+restaurant requests. Keep the wider prompt suite and competitor challenge for
+extra time. Your instructor enables the assistant's shield path before the lab
+and warms NeMo after the policy restart.
+A ready pod alone does not guarantee that its first model request is warm.
+
+Open the same allowed and blocked questions' traces in
+`restaurant-chatbot-traces`. Expand **Input Guard** / **Output Guard** and inspect
+`guardrails.outcome`: `skipped`, `allowed`, `blocked`, or `error_fail_open`.
+A blocked input should prevent the agent/tool stages. An agent refusal alone
+is not evidence of a NeMo block. NeMo can call the model during its own check;
+those internal calls are not separately instrumented here.
+
+## 6. Restore during the wrap-up
+
+Put the original `config.yaml` and `rails.co` values saved in step 2 back
+through the Console, restart the
+NeMo Deployment, and ask your instructor to warm it before retesting. If you
+started from the default empty policy, input flows should again be `[]`.
+Do not delete your namespace or comparison traces. Return the restaurant
+prompt's `active` alias to `baseline` if you changed it in the prompt exercise.
+
+## Optional challenge: keep competitors off the menu
 
 Extend your `self_check_input` prompt to also block requests about **McDonald's**
 and **Burger King**, even though they are restaurant topics. Consider names
@@ -178,3 +216,4 @@ Hint: make the competitor rule explicit and ensure that your general instruction
 to allow restaurant questions does not override it. Repeat the earlier tests
 to check that the original topic restrictions still work.
 
+**Finish:** [restore and wrap up](README.md#finish-and-restore).

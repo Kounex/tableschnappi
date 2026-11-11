@@ -361,83 +361,14 @@ normal release resources. Hooks then run automatically in order:
 
 ## Workshop Guide
 
-### 1. Explore the live app
-Open the frontend route. Scan the QR code at a table, browse the menu, and use the reservation chat widget.
+Start with **[workshop/README.md](workshop/README.md)**. It is the attendee entry
+point for the one-hour restaurant/MLflow lab. Follow the numbered guides in
+order; they tell you when to open the comparison notebook.
 
-### 2. Prompt tuning in MLflow
-Open RHOAI dashboard → **Experiments** → `restaurant-chatbot-traces`.
-
-The `seed-mlflow` hook pre-loads `restaurant-assistant-prompt@v1`. Run the workshop notebooks, in order, from the RHOAI workbench (`jupyter lab workshop/<name>.ipynb`):
-
-| Notebook | What it covers |
-|---|---|
-| `01_connect_and_explore.ipynb` | Verify connectivity to MLflow, vLLM, guardrails, and the MCP server |
-| `02_prompt_tuning.ipynb` | Hand-write and register an improved prompt version, compare v1 vs v2 with `mlflow.genai.evaluate` |
-| `03_guardrails_and_eval.ipynb` | Explore and evaluate the NeMo Guardrails rules |
-| `04_guardrails_eval_automated.ipynb` | Automated guardrails evaluation with `mlflow.genai.evaluate` + LLM-as-judge scorers |
-| `05_garak_redteam.ipynb` | Garak red-team probes against the guardrails endpoint, logged to MLflow |
-| `06_evalhub_native.ipynb` | Submit a benchmark job through RHOAI's native EvalHub REST API |
-
-`prompt-tuning-workshop.ipynb` is a standalone, self-contained alternative covering prompt tuning with visual (heatmap/radar/scatter) comparisons and a quick manual red-team check — useful as a single-notebook deep dive, independent of the 01–06 series.
-
-### 3. Guardrails testing
-Try off-topic questions in the chat widget (sports, weather, coding). NeMo Guardrails blocks them with a polite refusal.
-
-### 4. GenAI Studio MCP playground
-Open RHOAI → **Gen AI Studio** → **Playground**. Select your model, expand **MCP servers**, enable **TableSchnappi-MCP-Server**. Try: *"What restaurants do you have?"* or *"Is there a table available for 4 at Sakura?"*
-
-### 5. Garak red-team evaluation (optional)
-
-Two separate things share the name, and they are not interchangeable.
-
-**a. The post-install sweep.** A Helm hook that runs once at install time
-using the dedicated `packages/garak` image, and writes its results to the pod
-log.
-
-```bash
-helm upgrade tableschnappi charts/tableschnappi \
-  -n tableschnappi-$(oc whoami) \
-  -f my-values.yaml \
-  --set garak.enabled=true
-```
-
-**b. The in-app panel.** A button on the visitor page that runs four jailbreak
-probes on demand against the live model and shows the attack transcript — what
-was sent, what came back, and which detector judged it. This is the one worth
-demoing to a room; the hook above is better suited to CI.
-
-It needs garak inside the assistant image, which is off by default because it
-pulls torch and roughly doubles the image:
-
-```bash
-podman build --platform linux/amd64 --build-arg INCLUDE_GARAK=true \
-  -f packages/mlflow-proxy/Dockerfile \
-  -t <your-registry>/tableschnappi-mlflow-proxy:garak \
-  packages/mlflow-proxy
-```
-
-Or build it on the cluster, which avoids emulating amd64 on a laptop:
-
-```bash
-oc new-build --binary --strategy=docker --name tableschnappi-assistant-garak \
-  --build-arg INCLUDE_GARAK=true -n <your-namespace>
-oc start-build tableschnappi-assistant-garak \
-  --from-dir=packages/mlflow-proxy --follow -n <your-namespace>
-```
-
-Without it the endpoint returns a clear 501 and the panel says so.
-
-A full sweep takes about two minutes and costs four model calls. Read the
-result carefully: it is four probes of one prompt each, so "100%" means this
-model refused four known jailbreaks — not that the app is safe. Probes that
-produce nothing a detector can score are reported as `NO RESULT` rather than
-folded into the score, and the panel says how many of the four the number
-actually rests on.
-
-> Detector choice matters more than it looks. Each probe is pinned to its own
-> `dan.*` detector instead of garak's recommended set, because the set adds
-> `mitigation.MitigationBypass`, which recognises refusals by matching English
-> phrases — a model that refused in Chinese was scored as jailbroken.
+Instructors: use [preparation and reset](docs/INSTRUCTOR.md) before the event.
+The [technical walkthrough](docs/IMPLEMENTATION.md) explains installation and
+runtime behavior. Additional development examples are documented separately in
+[examples/README.md](examples/README.md).
 
 ## Seasonal knowledge (sekki) — optional RAG
 
@@ -471,12 +402,12 @@ Two routes. Both need a LlamaStack deployment with a vector-store backend.
 **A. One script** — simplest, and the one to start with.
 
 ```bash
-python workshop/generate_sekki_pdfs.py      # 24 PDFs from sekki_data.py
+python examples/generate_sekki_pdfs.py      # 24 PDFs from sekki_data.py
 
 export LLAMASTACK_BASE=http://<llamastack>:8321
 export DOCLING_URL=https://<your-gateway>   # optional, see below
 export DOCLING_KEY=sk-...
-python workshop/sekki_ingest.py             # prints the vector store id
+python examples/sekki_ingest.py             # prints the vector store id
 ```
 
 `DOCLING_URL` points at a **docling-serve** endpoint. Set it and nothing needs
@@ -486,12 +417,12 @@ passthrough at `/docling/v1/convert/source`, and the body must still carry
 `"model"` even though Docling is not a chat model — a chat-completions call
 against it returns 404.
 
-**B. The Kubeflow pipeline** — `workshop/sekki_pipeline.py`, the same six
+**B. The Kubeflow pipeline** — `examples/sekki_pipeline.py`, the same six
 stages as a scheduled KFP v2 job (clone → PDFs → Docling → chunk → ingest →
 verify), so it can be re-run on a cron.
 
 ```bash
-python workshop/sekki_pipeline.py           # compiles to pipelines_gen/
+python examples/sekki_pipeline.py           # compiles to pipelines_gen/
 # then: RHOAI Dashboard -> Data Science Pipelines -> Import pipeline
 ```
 

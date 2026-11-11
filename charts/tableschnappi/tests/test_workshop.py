@@ -103,6 +103,38 @@ class WorkshopTests(unittest.TestCase):
         parameters = yaml.safe_load(config["data"]["config.yaml"])["models"][0]["parameters"]
         self.assertNotIn("extra_body", parameters)
 
+    def test_alias_seed_preserves_participant_selection(self):
+        code = (CHART / "files/seed-mlflow.py").read_text()
+        selected = {"latest": 9, "baseline": 1, "active": 7}
+        module = types.ModuleType("mlflow")
+        module.set_tracking_uri = lambda uri: None
+        module.set_experiment = lambda name: None
+        def load(uri, **kwargs):
+            version = selected.get(uri.split("@")[-1])
+            return types.SimpleNamespace(version=version) if version else None
+        def set_alias(name, alias, version):
+            selected[alias] = version
+        module.genai = types.SimpleNamespace(load_prompt=load, set_prompt_alias=set_alias)
+        errors = types.ModuleType("mlflow.exceptions")
+        errors.MlflowException = RuntimeError
+        with patch.dict(sys.modules, {"mlflow": module, "mlflow.exceptions": errors}), patch.dict(os.environ, {"MLFLOW_TRACKING_URI": "https://mlflow.example.com", "MLFLOW_EXPERIMENT": "test"}):
+            exec(compile(code, "seed-mlflow.py", "exec"), {})
+            self.assertEqual(selected, {"latest": 9, "baseline": 1, "active": 7})
+            del selected["active"]
+            exec(compile(code, "seed-mlflow.py", "exec"), {})
+            self.assertEqual(selected, {"latest": 9, "baseline": 1, "active": 9})
+
+    def test_workshop_prompt_and_browser_link_configuration(self):
+        objects = render()
+        assistant = next(obj for obj in by_kind(objects, "Deployment") if obj["metadata"]["name"].endswith("mlflow-proxy"))
+        env = {item["name"]: item.get("value") for item in assistant["spec"]["template"]["spec"]["containers"][0]["env"]}
+        self.assertEqual(env["PROMPT_URI"], "prompts:/restaurant-assistant-prompt@active")
+        self.assertEqual(env["MLFLOW_ALIAS_PROMPT_CACHE_TTL_SECONDS"], "0")
+        self.assertEqual(env["MLFLOW_UI_URL"], "https://rh-ai.apps.example.com/mlflow")
+        notebook = by_kind(objects, "Notebook")[0]
+        env = {item["name"]: item.get("value") for item in notebook["spec"]["template"]["spec"]["containers"][0]["env"]}
+        self.assertEqual(env["RESTAURANT_API_URL"], "http://tableschnappi-backend.tableschnappi-user01.svc.cluster.local:3001")
+
     def test_source_pin_preserves_edits_and_retries_interrupted_fetch(self):
         notebook = by_kind(render(), "Notebook")[0]
         init = notebook["spec"]["template"]["spec"]["initContainers"][0]
@@ -166,14 +198,16 @@ class WorkshopTests(unittest.TestCase):
             module = types.ModuleType("mlflow")
             module.set_tracking_uri = lambda uri: None
             module.set_experiment = lambda name: None
-            def load(uri):
+            def load(uri, **kwargs):
+                if kwargs.get("allow_missing"):
+                    return None if state is None else state
                 if state is None or isinstance(state, str):
                     raise Error(state or "RESOURCE_DOES_NOT_EXIST")
                 return state
             def register(**kwargs):
                 calls.append(kwargs)
                 return types.SimpleNamespace(version=1)
-            module.genai = types.SimpleNamespace(load_prompt=load, register_prompt=register)
+            module.genai = types.SimpleNamespace(load_prompt=load, register_prompt=register, set_prompt_alias=lambda **kwargs: None)
             errors = types.ModuleType("mlflow.exceptions")
             errors.MlflowException = Error
             with patch.dict(sys.modules, {"mlflow": module, "mlflow.exceptions": errors}), patch.dict(os.environ, {"MLFLOW_TRACKING_URI": "https://mlflow.example.com", "MLFLOW_EXPERIMENT": "test"}):

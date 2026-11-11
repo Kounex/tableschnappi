@@ -7,8 +7,9 @@
 `packages/backend` is the Express and Socket.IO API, while `packages/mcp-server`
 adapts that API to MCP tools. `packages/mlflow-proxy/app.py` contains the Python
 assistant, guardrail, and MLflow integration. Helm deployment configuration lives
-in `charts/tableschnappi`; workshop notebooks and pipeline scripts live in
-`workshop`. Container files sit beside the service they build.
+in `charts/tableschnappi`; the current attendee lab lives in `workshop`.
+Optional development notebooks and pipeline scripts live in `examples`, and
+instructor setup lives in `docs`. Container files sit beside the service they build.
 
 ## Build, Test, and Development Commands
 

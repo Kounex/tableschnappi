@@ -547,7 +547,7 @@ export default function VisitorPage() {
           <span className="text-xs text-jp-muted font-mono">
             <span className="neon-text font-bold" style={{ color: '#ff2d75' }}>LIVE_DEMO</span>
             {' // '}
-            <span style={{ color: '#00f0ff' }}>Llama3.1</span>
+            <span style={{ color: '#00f0ff' }}>Tool-calling model</span>
             {' · '}
             <span style={{ color: '#9d4edd' }}>LangGraph</span>
             {' · '}

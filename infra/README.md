@@ -115,10 +115,10 @@ Check the `evalhub` route in the participant namespace, `/api/v1/health`, and `/
 In a workbench terminal, from the cloned repository:
 
 ```bash
-python -m pip install -r workshop/requirements-notebooks.in
+python -m pip install -r examples/requirements-notebooks.in
 # Use a separate environment for compiling pipelines:
 python -m venv /tmp/tableschnappi-kfp
-/tmp/tableschnappi-kfp/bin/pip install -r workshop/requirements-pipeline.in
+/tmp/tableschnappi-kfp/bin/pip install -r examples/requirements-pipeline.in
 ```
 
 The KFP dependency pins do not resolve cleanly with the Docling/Transformers notebook stack; keep them separate. Notebook 05 installs `garak>=0.17` separately using the PyTorch CPU index; reserve disk/cache space and confirm it installed CPU wheels. Garak runs against a remote model, so CUDA wheels are unnecessary. The optional garak container is amd64-specific.

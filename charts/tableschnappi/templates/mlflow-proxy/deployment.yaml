@@ -28,6 +28,12 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: PROMPT_URI
+              value: {{ .Values.assistant.promptUri | quote }}
+            - name: MLFLOW_ALIAS_PROMPT_CACHE_TTL_SECONDS
+              value: {{ .Values.assistant.promptCacheTtlSeconds | quote }}
+            - name: MLFLOW_UI_URL
+              value: {{ .Values.rhoai.mlflowUiUrl | default "" | quote }}
             {{- if .Values.mlflow.enabled }}
             - name: MLFLOW_TRACKING_URI
               value: {{ .Values.rhoai.mlflowUri | quote }}
@@ -64,7 +70,7 @@ spec:
             {{- if and .Values.sekki.llamastackBase .Values.sekki.vectorStoreId }}
             # Seasonal RAG. Both are needed: with either unset the assistant
             # skips the lookup and answers from the prompt alone. The store is
-            # built by workshop/sekki_pipeline.py — the chart does not create
+            # built by examples/sekki_pipeline.py — the chart does not create
             # it, it only points at one that exists.
             - name: LLAMASTACK_BASE
               value: {{ .Values.sekki.llamastackBase | quote }}

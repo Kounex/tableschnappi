@@ -4,6 +4,10 @@
 rhoai:
   appsDomain: apps.example.com
   mlflowUri: https://rh-ai.apps.example.com/mlflow
+  mlflowUiUrl: https://rh-ai.apps.example.com/mlflow
+assistant:
+  promptUri: prompts:/restaurant-assistant-prompt@active
+  promptCacheTtlSeconds: 0
 model:
   mode: maas
   endpoint: https://model.example.com
@@ -31,11 +35,12 @@ workbench:
   pipelines:
     enabled: false
   image: registry.redhat.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:f69af2080601644b322ca63a3ca38a6dde2cca0b567681c39767e150a0194c0e
-  repoUrl: https://github.com/stefan-bergstein/tableschnappi.git
-  repoRef: 37d686e4d6945bcdffdea4f9bd407b600d3f940f
+  repoUrl: https://github.com/Kounex/tableschnappi.git
+  repoRef: 5e4396649a7dbef871a2745781733585c77683d1
 guardrails:
   enabled: true
-  shieldsEnabled: false
+  # Match workshop/05-guardrails.md: shields connected, NeMo input policy initially empty.
+  shieldsEnabled: true
 aiAsset:
   enabled: true
 genaiStudio:

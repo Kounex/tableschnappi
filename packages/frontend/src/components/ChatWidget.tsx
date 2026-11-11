@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { ChevronRight, MessageSquare, X, Send, Bot, ThumbsUp, ThumbsDown, Users, Clock, Cloud, Play, Square, UtensilsCrossed } from 'lucide-react'
+import { ChevronRight, MessageSquare, X, Send, Bot, ThumbsUp, ThumbsDown, Users, Clock, Cloud, Play, Square, UtensilsCrossed, RotateCcw } from 'lucide-react'
 import { ToolCallInfo } from '../types'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   traceId?: string
+  traceUrl?: string
+  prompt?: { status: string; version?: string }
+  ratingError?: string
+  ratingPending?: boolean
   rated?: boolean
   toolCalls?: ToolCallInfo[]
 }
@@ -23,9 +27,10 @@ const TOOL_LABELS: Record<string, string> = {
 }
 
 const DEMO_CHIPS = [
-  { label: 'Table for 4 tonight', icon: Users },
-  { label: "What's on the menu?", icon: UtensilsCrossed },
-  { label: 'Current wait time?', icon: Clock },
+  { label: 'I would like to book a table.', icon: Users },
+  { label: 'Which vegetarian main dishes are on your menu? Please check the menu.', icon: UtensilsCrossed },
+  { label: 'Exactly how many fresh truffles are left in your kitchen right now?', icon: UtensilsCrossed },
+  { label: 'What is the current wait time? Please check.', icon: Clock },
   { label: "What's the weather?", icon: Cloud, hint: 'Guardrail demo' },
 ]
 
@@ -85,10 +90,23 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [demoRunning, setDemoRunning] = useState(false)
+  const [modelName, setModelName] = useState('')
   const demoRef = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const sessionId = useRef(`session-${Date.now()}`)
+  const sessionId = useRef(crypto.randomUUID())
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/api/assistant/health').then(r => r.json())
+      .then(data => setModelName(data.modelName ?? '')).catch(() => {})
+  }, [])
+
+  const newChat = () => {
+    if (loading || demoRunning) return
+    sessionId.current = crypto.randomUUID()
+    setMessages([{ role: 'assistant', content: 'Welcome! What would you like to know about the restaurant?' }])
+    setInput('')
+  }
 
   const sendRef = useRef<((text: string) => void) | null>(null)
 
@@ -96,7 +114,7 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
     setMessages([
       { role: 'assistant', content: `Welcome! I can check availability, browse the menu, or book a table for you. How can I help?` }
     ])
-    sessionId.current = `session-${Date.now()}`
+    sessionId.current = crypto.randomUUID()
   }, [slug])
 
   useEffect(() => {
@@ -119,12 +137,14 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: next, sessionId: sessionId.current }),
       })
-      const data = await res.json() as { response?: string; error?: string; traceId?: string; toolCalls?: ToolCallInfo[] }
+      const data = await res.json() as { response?: string; error?: string; traceId?: string; traceUrl?: string; prompt?: ChatMessage['prompt']; toolCalls?: ToolCallInfo[] }
       const content = data.response ?? data.error ?? 'Sorry, something went wrong.'
       setMessages(prev => [...prev, {
         role: 'assistant',
         content,
         traceId: data.traceId,
+        traceUrl: data.traceUrl,
+        prompt: data.prompt,
         toolCalls: data.toolCalls,
       }])
       window.dispatchEvent(new CustomEvent('chat-response', { detail: { response: content } }))
@@ -155,6 +175,7 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
     }
 
     demoRef.current = true
+    sessionId.current = crypto.randomUUID()
     setDemoRunning(true)
     setMessages([
       { role: 'assistant', content: 'Welcome! I can check availability, browse the menu, or book a table for you. How can I help?' }
@@ -184,11 +205,13 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
             body: JSON.stringify({ messages: next, sessionId: sessionId.current, ...(table !== undefined && { table }) }),
           })
             .then(r => r.json())
-            .then((data: { response?: string; error?: string; traceId?: string; toolCalls?: ToolCallInfo[] }) => {
+            .then((data: { response?: string; error?: string; traceId?: string; traceUrl?: string; prompt?: ChatMessage['prompt']; toolCalls?: ToolCallInfo[] }) => {
               setMessages(p => [...p, {
                 role: 'assistant',
                 content: data.response ?? data.error ?? 'Sorry, something went wrong.',
                 traceId: data.traceId,
+                traceUrl: data.traceUrl,
+                prompt: data.prompt,
                 toolCalls: data.toolCalls,
               }])
               setLoading(false)
@@ -243,8 +266,10 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
             </div>
             <div className="flex-1">
               <p className="text-white font-bold text-sm leading-tight font-mono">AI_HOST</p>
-              <p className="text-white/70 text-xs font-mono">OpenShift AI // Llama 3.1</p>
+              <p className="text-white/70 text-xs font-mono">OpenShift AI{modelName ? ` // ${modelName}` : ''}</p>
             </div>
+            <button onClick={newChat} disabled={loading || demoRunning} title="New chat"
+              className="text-white disabled:opacity-40"><RotateCcw size={15} /></button>
             <button onClick={runDemoScript}
               title={demoRunning ? 'Stop demo' : 'Auto-run demo'}
               className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
@@ -293,13 +318,21 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
                         {[{ score: 1, icon: <ThumbsUp size={11} />, label: 'Good' },
                           { score: 0, icon: <ThumbsDown size={11} />, label: 'Bad' }].map(({ score, icon, label }) => (
                           <button key={score} title={label}
+                            disabled={msg.ratingPending}
                             onClick={async () => {
-                              await fetch(`/api/restaurants/${slug}/assistant/feedback`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ traceId: msg.traceId, score }),
-                              })
-                              setMessages(prev => prev.map((m, j) => j === i ? { ...m, rated: true } : m))
+                              setMessages(prev => prev.map(m => m.traceId === msg.traceId ? { ...m, ratingPending: true, ratingError: undefined } : m))
+                              try {
+                                const response = await fetch(`/api/restaurants/${slug}/assistant/feedback`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ traceId: msg.traceId, score }),
+                                })
+                                const data = await response.json()
+                                if (!response.ok || !data.ok) throw new Error('Feedback was not saved')
+                                setMessages(prev => prev.map(m => m.traceId === msg.traceId ? { ...m, rated: true, ratingPending: false } : m))
+                              } catch {
+                                setMessages(prev => prev.map(m => m.traceId === msg.traceId ? { ...m, ratingPending: false, ratingError: 'Feedback was not saved. Please retry.' } : m))
+                              }
                             }}
                             className="flex items-center gap-1 text-jp-muted hover:text-jp-text bg-jp-border/40 hover:bg-jp-border rounded-full px-2 py-0.5 text-xs transition-colors">
                             {icon}
@@ -309,9 +342,15 @@ export function ChatWidget({ slug, initialOpen, table }: { slug: string; initial
                     ) : (
                       <p className="text-xs text-jp-muted">Thanks for the feedback</p>
                     )}
-                    <span className="text-[9px] text-jp-muted/40 ml-1 font-mono">traced</span>
+                    {msg.traceUrl ? (
+                      <a href={msg.traceUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline ml-1">Open trace</a>
+                    ) : <span className="text-[9px] text-jp-muted ml-1" title={msg.traceId}>Trace ID: {msg.traceId}</span>}
                   </div>
                 )}
+                {msg.prompt && <p className="text-xs text-jp-muted ml-8 mt-1">
+                  {msg.prompt.status === 'registry' ? `Prompt v${msg.prompt.version}` : msg.prompt.status === 'fallback' ? 'Built-in prompt fallback' : 'Prompt not used'}
+                </p>}
+                {msg.ratingError && <p role="alert" className="text-xs text-red-700 ml-8 mt-1">{msg.ratingError}</p>}
               </div>
             ))}
 

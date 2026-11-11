@@ -2,7 +2,7 @@
 Guardrails Safety Evaluation — logs results to MLflow.
 
 Run from a workbench, or as a Job on the cluster or locally:
-  MLFLOW_TRACKING_URI=https://... python3 workshop/guardrails-eval.py
+  MLFLOW_TRACKING_URI=https://... python3 examples/guardrails-eval.py
 
 Results appear in RHOAI Dashboard → Experiments → restaurant-chatbot-traces
 """

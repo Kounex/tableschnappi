@@ -140,6 +140,12 @@ spec:
               value: "http://{{ include "tableschnappi.fullname" . }}-guardrails.{{ .Release.Namespace }}.svc.cluster.local:80"
             - name: ASSISTANT_URL
               value: "http://{{ include "tableschnappi.mlflowProxyService" . }}.{{ .Release.Namespace }}.svc.cluster.local:8000"
+            - name: RESTAURANT_API_URL
+              value: "http://{{ include "tableschnappi.backendService" . }}.{{ .Release.Namespace }}.svc.cluster.local:3001"
+            - name: MLFLOW_UI_URL
+              value: {{ .Values.rhoai.mlflowUiUrl | default "" | quote }}
+            - name: PROMPT_URI
+              value: {{ .Values.assistant.promptUri | quote }}
             {{- if .Values.mlflow.enabled }}
             # URI/auth are injected by the native Notebook MLflow annotation.
             - name: MLFLOW_WORKSPACE

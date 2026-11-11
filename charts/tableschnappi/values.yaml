@@ -102,6 +102,8 @@ rhoai:
 # other target for ASSISTANT_URL.
 assistant:
   enabled: true
+  promptUri: prompts:/restaurant-assistant-prompt@latest
+  promptCacheTtlSeconds: 60
 
 # MLflow tracing, prompt registry, and the seed/wait install hooks. Independent
 # of `assistant.enabled`: with this off, chat still works and the assistant
@@ -140,7 +142,7 @@ aiAsset:
 #
 # The assistant looks up today's solar term in the vector store and grounds
 # menu and seasonality answers in it. The store is NOT created by this chart:
-# run workshop/sekki_pipeline.py (or the manual path in the README), then put
+# run examples/sekki_pipeline.py (or the manual path in the README), then put
 # the id it prints here. With either value empty the assistant skips the
 # lookup entirely and answers from its prompt, which is the default.
 sekki:

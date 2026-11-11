@@ -2,9 +2,9 @@
 Generate one PDF per sekki (24 total).
 
 Requires:  pip install fpdf2 requests
-Run once:  python3 workshop/generate_sekki_pdfs.py
+Run once:  python3 examples/generate_sekki_pdfs.py
 
-Output:    workshop/sekki_pdfs/  (24 PDF files)
+Output:    examples/sekki_pdfs/  (24 PDF files)
 """
 import os
 import sys
