@@ -366,7 +366,7 @@ point for the one-hour restaurant/MLflow lab. Follow the numbered guides in
 order; they tell you when to open the comparison notebook.
 
 Instructors: use [preparation and reset](docs/INSTRUCTOR.md) before the event.
-The [technical walkthrough](docs/IMPLEMENTATION.md) explains installation and
+The [changes, pitch and manual walkthrough](docs/IMPLEMENTATION.md) explains installation and
 runtime behavior. Additional development examples are documented separately in
 [examples/README.md](examples/README.md).
 

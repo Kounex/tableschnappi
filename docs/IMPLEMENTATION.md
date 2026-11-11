@@ -1,17 +1,84 @@
-# What changed, why, and how to do it manually
+# From restaurant demo to a repeatable MLflow lab
 
-This event fork is `Kounex/tableschnappi`. Stefan's fork remains upstream.
-There are two separate changes: the earlier multi-user Helm work (commit
-`d030c5f`, also proposed upstream as PR #1), and the guided MLflow lab built on it.
-The application changes require new container images; a Git pull alone cannot
-update a running restaurant.
+The multi-user chart changes (`d030c5f`) and
+[the guided lab PR](https://github.com/Kounex/tableschnappi/pull/1) are merged into
+`Kounex/tableschnappi` main. The lab merge is `9c7c638`. Stefan's fork remains
+upstream and its chart PR is separate. The new fork release still needs an
+event-cluster rollout and rehearsal; merged code does not update running pods.
+
+## The pitch in one minute
+
+We have adapted the existing restaurant demo into a repeatable, one-hour
+OpenShift AI lab for 50 named participants. Each participant gets their own
+restaurant and workbench, while a shared MLflow server organizes their prompts,
+traces and feedback in namespace-authorized workspaces. They first use the
+restaurant and inspect what happened, then activate a new system-prompt version
+and compare the same questions. They also enable NeMo guardrails and inspect
+how a blocked request changes the execution path. YAML, Helm, pinned source and
+image references, and explicit reset/teardown instructions make the setup
+understandable and reproducible. Our fork lets us develop this event experience
+independently and later propose selected changes back to Stefan.
+
+## What we started with
+
+Stefan's fork already supplied the restaurant frontend/backend, LangGraph
+assistant, restaurant MCP tools, NeMo integration, MLflow autologging/manual
+spans, a Helm chart and several exploratory notebooks. The guardrails guide
+also came from our colleague. We built on those pieces; we did not create a
+new restaurant, agent framework or tracing system.
+
+## What changed and why it matters
+
+| Area | Concrete change | Effect for the event |
+|---|---|---|
+| Installation | Extended the [Helm chart](../charts/tableschnappi/README.md) with a multi-user profile, namespace-local identities, existing Secret support, pinned images/source and ordered seed Jobs | The same chart can install one complete stack per participant |
+| Prompt behavior | The [Python assistant](../packages/mlflow-proxy/app.py) accepts `PROMPT_URI`; the lab uses `@active` and resolves it once per turn | Publishing and activating are separate; a chat turn keeps one version; rollback means moving the alias |
+| Prompt initialization | The [seed](../charts/tableschnappi/files/seed-mlflow.py) creates missing baseline/active aliases and retains existing versions/selections | Reapplying the installation does not silently reset a participant's work |
+| Trace navigation | The assistant returns a trace URL and prompt metadata; [the chat widget](../packages/frontend/src/components/ChatWidget.tsx) displays them alongside the configured model and New chat | Attendees can go directly from an answer to its evidence and start independent comparisons |
+| Reliable feedback | Python returns save errors, [Express forwards them](../packages/backend/src/assistant.ts), and the browser offers retry | A success message reflects a successful feedback write rather than hiding a failure |
+| Trace context | Added native session metadata, prompt version/fallback tags, guard outcomes and explicit MCP exception status | Attendees can distinguish model behavior, tool errors and policy enforcement |
+| Comparison | [One notebook helper](../workshop/helpers/lab_support.py) replays five fixed questions through the real restaurant API | Baseline/candidate results refer to the same application attendees use, not a replacement notebook agent |
+| Learning path | [Five numbered guides](../workshop/README.md), one notebook and internal helpers; instructor/development material moved out | Attendees follow one route through the hour; guardrails has a required 15-minute slot |
+| Delivery and checks | Fork-owned GHCR publishing plus [workshop CI](../.github/workflows/mlflow-lab.yml) | Image publishing is separate from the shared Quay organization; regression checks cover the added behavior |
+
+The detailed sections below explain the mechanisms and their manual equivalents.
+For a participant-facing explanation, start with [the workshop](../workshop/README.md).
+For setup and warmup, use [the instructor guide](INSTRUCTOR.md).
+
+## The platform work around the application
+
+The environment runbook lives separately under `darmstadt-demo-2026-11-10/` in
+our productivity workspace. It prepares the shared cluster and participant
+projects; this application chart installs into that foundation.
+
+| Runbook files | What they define | Why we chose it |
+|---|---|---|
+| `manifests/00-platform/` | Operator Subscription/OperatorGroup, managed DataScienceCluster components and dashboard configuration | OpenShift AI and the MLflow operator are reconciled by operators. The desired Subscription uses Automatic approval on `stable-3.5` |
+| `manifests/10-images/`, `config/` | Git BuildConfigs with explicit Dockerfile/context paths, source commit and image locks | Builds have reviewable inputs; deployments can select immutable image digests |
+| `manifests/20-mlflow/` | MLflow custom resource, PostgreSQL/PVC and ODF object-bucket storage | Share tracking metadata/artifacts across the event instead of installing 50 tracking servers |
+| `manifests/30-participant/project/` | Namespace, service account, RoleBindings, quota, limits, ingress policy and image-pull grant | Repeatable separation and resource boundaries for `user01`–`user50`; project labels enable OpenShift AI discovery |
+| Participant model configuration | External endpoint/model parameters, namespace-local model Secret and native AI asset ConfigMap | Reuse the provided model API and make it discoverable without deploying a local model or another gateway |
+| `scripts/` and `scripts/helpers/` | Thin batch entry commands, native `oc process` into server-side apply, Secret bootstrap and waits | Apply templates directly for a user range without generating 50 manifest trees; persistent configuration stays in YAML |
+| `docs/TEARDOWN.md` | Exercise reset, participant deletion and full platform/storage removal | State clearly what is retained, including notebook PVCs and shared MLflow history |
+
+Those runbook definitions include changes not yet reconciled onto the older live
+deployment. In particular, its source lock still selects the earlier Stefan
+revision. Moving to the merged fork requires new image/source selections and a
+two-user delete/recreate pilot before applying the full roster.
+
+The AI asset entry is discovery configuration. The restaurant assistant and
+NeMo still call the external API with the model Secret; the entry is not a proxy
+and does not remove the need for an API key. The workbench has model credentials
+for independent exploration, but the guided comparison notebook only calls the
+restaurant API. Shared provider quota also remains shared. PostgreSQL is a single persistent lab Deployment, not an HA
+operator-managed database. The runbook uses explicit applies; it does not add
+a continuous GitOps controller.
 
 The fork's image workflow publishes on `main` to `ghcr.io/kounex/…`, using
-this repository's GitHub token. Pull requests build without publishing. The
-inherited shared Quay destination is removed from this workflow. Deploy using
-the resulting image digests in site values, not an assumption that the old
-upstream images contain this fork's changes. Make workshop packages pullable
-by the cluster, either publicly or with the chart's imagePullSecrets setting.
+this repository's GitHub token. Pull requests build without publishing. Deploy
+new application images by digest in site values; a source checkout alone cannot
+replace a running image. Make the workshop packages pullable by the cluster,
+either publicly or through the chart's imagePullSecrets setting.
 
 ## 1. Helm is the participant application installer
 
@@ -202,6 +269,11 @@ checks are diagnostic expectations; participants assess answer quality themselve
 
 ## 6. Guardrails use the existing operator and guide
 
+Guardrails is a required part of the hour, using our colleague's guide and
+policy examples. Its protected slot is minutes 40–55; only the wider test suite
+and competitor challenge are optional. This is a policy experiment separate
+from the system-prompt experiment.
+
 The workshop profile connects the assistant shields from the start, while NeMo
 starts with no input policy (`flows: []`). Participants edit the existing NeMo
 ConfigMap through the Console and restart its Deployment, as the original guide
@@ -212,6 +284,23 @@ After a restart, warm NeMo before judging a result. The assistant's existing
 than treating a working chat as proof of enforcement. NeMo checks themselves
 can call the model; their internal calls are not separately instrumented.
 Restore the saved ConfigMap text and restart/warm NeMo to reset this exercise.
+
+## The hour attendees experience
+
+| Time | Activity | What they should be able to explain |
+|---|---|---|
+| 0–5 min | Open the app, MLflow and workbench | Which project/workspace is theirs |
+| 5–18 min | Chat, inspect traces and give feedback | Why a tool was called, what it returned, and whether the answer was useful |
+| 18–23 min | Record five baseline questions | Why evidence must be captured before changing the prompt |
+| 23–33 min | Create/activate a system-prompt version | How MLflow's alias controls the restaurant's next turn |
+| 33–40 min | Compare the candidate and restore the baseline prompt | What improved or regressed for the same question |
+| 40–55 min | Apply, reload and test NeMo guardrails; inspect traces | Whether a request was blocked by policy and which stages were skipped |
+| 55–60 min | Restore and discuss | How to return to the starting state without deleting evidence |
+
+The notebook triggers requests to the restaurant. The LangGraph agent stays in
+the restaurant stack. Neither the Notebook annotation nor the AI asset entry
+turns arbitrary code into traced agent behavior; the existing and added SDK
+instrumentation is what records it.
 
 ## 7. Reset and teardown
 
