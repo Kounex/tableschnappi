@@ -137,6 +137,9 @@ class WorkshopTests(unittest.TestCase):
         self.assertEqual(env["RESTAURANT_API_URL"], "http://tableschnappi-backend.tableschnappi-user1.svc.cluster.local:3001")
         self.assertIn("--ServerApp.token=''", env["NOTEBOOK_ARGS"])
         self.assertIn("--ServerApp.password=''", env["NOTEBOOK_ARGS"])
+        # The RHOAI entrypoint translates this env into another base_url argument.
+        # Supplying it alongside NOTEBOOK_ARGS makes Jupyter reject the duplicate.
+        self.assertNotIn("NOTEBOOK_BASE_URL", env)
 
     def test_source_pin_preserves_edits_and_retries_interrupted_fetch(self):
         notebook = by_kind(render(), "Notebook")[0]

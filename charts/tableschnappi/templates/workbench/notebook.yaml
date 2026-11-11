@@ -115,8 +115,6 @@ spec:
                 --ServerApp.port=8888 --ServerApp.token='' --ServerApp.password=''
                 --ServerApp.base_url=/notebook/{{ .Release.Namespace }}/{{ include "tableschnappi.workbenchName" . }}
                 --ServerApp.quit_button=False
-            - name: NOTEBOOK_BASE_URL
-              value: "/notebook/{{ .Release.Namespace }}/{{ include "tableschnappi.workbenchName" . }}"
             # Through the model helpers, like every other template. These read
             # .Values.rhoai.vllm* directly, which are empty by default — so the
             # notebooks' configuration cell would have been handed blanks and
