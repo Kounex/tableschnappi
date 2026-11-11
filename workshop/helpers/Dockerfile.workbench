@@ -3,6 +3,10 @@
 FROM registry.redhat.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:f69af2080601644b322ca63a3ca38a6dde2cca0b567681c39767e150a0194c0e
 USER 1001
 COPY requirements.txt /tmp/restaurant-lab-requirements.txt
-RUN python -m pip install --no-cache-dir --index-url https://pypi.org/simple -r /tmp/restaurant-lab-requirements.txt \
-    && python -m pip check \
+# Compare with the immutable vendor base: fail for conflicts introduced by the
+# lab, while retaining visibility of existing base-package inconsistencies.
+RUN (python -m pip check > /tmp/base-package-check.txt || true) \
+    && python -m pip install --no-cache-dir --index-url https://pypi.org/simple -r /tmp/restaurant-lab-requirements.txt \
+    && (python -m pip check > /tmp/lab-package-check.txt || true) \
+    && python -c "from pathlib import Path; before=set(Path('/tmp/base-package-check.txt').read_text().splitlines()); after=set(Path('/tmp/lab-package-check.txt').read_text().splitlines()); added=after-before-{'No broken requirements found.'}; assert not added, '\\n'.join(sorted(added)); print('No new dependency conflicts relative to the pinned RHOAI base')" \
     && python -c "import mlflow, pandas, requests; import mlflow.genai; print(mlflow.__version__)"
