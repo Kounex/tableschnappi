@@ -3,8 +3,9 @@
 The multi-user chart changes (`d030c5f`) and
 [the guided lab PR](https://github.com/Kounex/tableschnappi/pull/1) are merged into
 `Kounex/tableschnappi` main. The lab merge is `9c7c638`. Stefan's fork remains
-upstream and its chart PR is separate. A real `user1` pilot has been deployed and rehearsed on the event cluster.
-The remaining accounts and a 50-user capacity rehearsal are separate steps.
+upstream and its chart PR is separate. A real `user1` pilot has been rebuilt and rehearsed on the replacement cluster.
+The old lab and AI installation were removed while preserving CTFd. The remaining
+accounts and a 50-user capacity rehearsal are separate steps.
 
 ## The pitch in one minute
 
@@ -274,6 +275,13 @@ native injected authentication. The workbench uses normal TLS verification;
 the cluster pilot confirmed the gateway certificate validates without disabling
 certificate checks.
 
+The migration rebuild aligned pandas/requests with the pinned RHOAI base so
+Feast/KFP dependencies stay compatible. The Dockerfile records `pip check`
+before and after installing the lab and fails on newly introduced conflicts.
+The vendor base's existing Ray/codeflare mismatch remains recorded; distributed
+computing is outside the guided lab. The build runner also stops promptly on a
+terminal Failed/Error/Cancelled build rather than waiting for Complete to time out.
+
 The notebook reads the alias; it never publishes or activates prompts. Run the
 baseline batch, change active in the MLflow UI, then run the candidate batch.
 A fallback, mismatched version or unreadable trace stops the batch. Tool/format
@@ -365,3 +373,23 @@ to a different participant's experiment returned `403 PERMISSION_DENIED`.
 See [VALIDATION.md](VALIDATION.md) for exact checks and remaining gates. These
 single-participant results establish functionality, not 50-user external-model
 quota or concurrency capacity. Only one attendee account has been provisioned.
+
+## 10. Cluster move rehearsal
+
+The environment runbook now records a complete source teardown and target replay.
+The source's 42 remaining participant projects, 43 lab PVs, MLflow/database/bucket,
+images and AI installation were removed. CTFd's storage and existing credentials
+were preserved; an independent CTFd GitOps image update was retained.
+
+The real replay exposed bootstrap OperatorGroup reuse, one Subscription channel
+field-ownership transfer and a RHOAI 3.5.2 uninstall finalizer issue. Native recovery
+manifests temporarily restored the original LLM controller, which finalized its
+20 unused configurations normally. All recovery objects were removed afterwards.
+An explicit provenance/consumer audit removed the AI API/configuration residuals.
+
+The replacement started with an operator-only bootstrap. Native YAML installed
+the AI components and fresh MLflow storage; five Git image builds and the pinned
+chart installed `user1`. The full comparison/feedback/guardrail flow and native
+browser/workbench access passed there. Source MLflow history was backed up and
+intentionally not restored. The environment runbook's `docs/MIGRATION.md` contains
+the operational sequence, corrections and remaining validation limits.

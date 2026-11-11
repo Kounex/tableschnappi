@@ -71,12 +71,19 @@ service account. Browser SSO and direct foreign-experiment denial exercise the
 human account separately. They are distinct identities with namespace-local
 permissions. The baseline prompt and empty policy are restored for testing.
 
+The same flow subsequently passed after rebuilding on a replacement cluster
+with fresh MLflow storage and no restored source history. The source AI/lab
+installation was fully removed, including the documented native-controller
+finalizer recovery and residual-resource audit; CTFd was preserved. The target
+had only the RHOAI operator bootstrapped before replay. Five fresh Git builds
+and native YAML/Helm install were exercised; OLM install from zero was not.
+
 ## Remaining event gates
 
-- Provision the remaining attendee accounts and recreate remaining legacy
-  participant stacks before scaling the new profile to all 50 users.
+- Provision the remaining attendee accounts and deploy their participant stacks
+  before scaling the profile to all 50 users.
 - Rehearse simultaneous external-model quota/capacity: ten comparison turns
   per attendee already means 500 app turns, plus model/tool/guard calls.
-- Rehearse the complete shared-platform install and final uninstall on a
-  disposable matching cluster; the active event cluster has not been uninstalled.
+- Rehearse OLM installation from zero on a disposable matching cluster. The
+  real move exercised full source uninstall and a target operator-only bootstrap.
 - If event history matters, test coordinated database/artifact backup and restore.
