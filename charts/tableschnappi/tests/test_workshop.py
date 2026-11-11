@@ -16,7 +16,7 @@ import yaml
 CHART = Path(__file__).resolve().parents[1]
 
 
-def render(*values, profile="values-multi-user.yaml", namespace="tableschnappi-user01"):
+def render(*values, profile="values-multi-user.yaml", namespace="tableschnappi-user1"):
     command = ["helm", "template", "tableschnappi", str(CHART), "--namespace", namespace]
     if profile:
         command += ["-f", str(CHART / profile)]
@@ -33,7 +33,7 @@ def by_kind(objects, kind):
 class WorkshopTests(unittest.TestCase):
     def test_all_participants_use_own_identity_and_workspace(self):
         for number in range(1, 51):
-            user = f"user{number:02d}"
+            user = f"user{number}"
             namespace = "tableschnappi-" + user
             objects = render(f"workbench.name={user}", f"workbench.username={user}", namespace=namespace)
             self.assertTrue(all(obj["metadata"]["namespace"] == namespace for obj in objects))
@@ -134,7 +134,7 @@ class WorkshopTests(unittest.TestCase):
         self.assertEqual(env["MLFLOW_UI_URL"], "https://rh-ai.apps.example.com/mlflow")
         notebook = by_kind(objects, "Notebook")[0]
         env = {item["name"]: item.get("value") for item in notebook["spec"]["template"]["spec"]["containers"][0]["env"]}
-        self.assertEqual(env["RESTAURANT_API_URL"], "http://tableschnappi-backend.tableschnappi-user01.svc.cluster.local:3001")
+        self.assertEqual(env["RESTAURANT_API_URL"], "http://tableschnappi-backend.tableschnappi-user1.svc.cluster.local:3001")
         self.assertIn("--ServerApp.token=''", env["NOTEBOOK_ARGS"])
         self.assertIn("--ServerApp.password=''", env["NOTEBOOK_ARGS"])
 

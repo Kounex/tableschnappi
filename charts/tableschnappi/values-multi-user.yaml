@@ -29,8 +29,8 @@ components:
     image: registry.example.com/lab/assistant@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 workbench:
   enabled: true
-  name: user01
-  username: user01
+  name: user1
+  username: user1
   grantEdit: true
   pipelines:
     enabled: false

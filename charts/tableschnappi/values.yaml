@@ -159,7 +159,7 @@ workbench:
   # Optional. Leave empty to let the DSP operator choose.
   mariadbImage: ""
   enabled: false
-  # Empty name derives from the release. Set name/username to userNN per project.
+  # Empty name derives from the release. Set name/username to userN per project.
   name: ""
   username: admin
   serviceAccountName: ""

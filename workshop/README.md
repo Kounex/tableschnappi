@@ -1,7 +1,7 @@
 # Start here: explore the restaurant with MLflow
 
 Your instructor provides your account, restaurant URL, OpenShift AI URL and
-MLflow URL. Use your own project/workspace, `tableschnappi-userNN`.
+MLflow URL. Use your own project/workspace, `tableschnappi-userN`.
 Read the numbered guides in order. Open `comparison.ipynb` only when steps
 02 and 04 tell you to; `helpers/` contains implementation files you do not need
 to open or run.
@@ -13,7 +13,7 @@ synthetic data. The learning loop is **predict → chat → inspect → change �
 
 | Time | Exercise | What to look for |
 |---|---|---|
-| 0–5 min | Sign in, open the restaurant, MLflow workspace and workbench | All three belong to your `userNN` project |
+| 0–5 min | Sign in, open the restaurant, MLflow workspace and workbench | All three belong to your `userN` project |
 | 5–15 min | [Follow three chat turns](01-traces.md) | Clarification, a menu tool call, and uncertainty about unavailable information |
 | 15–18 min | [Rate an answer and inspect its feedback](01-traces.md#3-give-feedback) | Technical success and answer quality are different |
 | 18–23 min | [Record the five-case baseline](02-baseline.md) in the notebook | Save evidence before changing anything |

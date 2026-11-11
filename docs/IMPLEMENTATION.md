@@ -56,7 +56,7 @@ projects; this application chart installs into that foundation.
 | `manifests/00-platform/` | Operator Subscription/OperatorGroup, managed DataScienceCluster components and dashboard configuration | OpenShift AI and the MLflow operator are reconciled by operators. The desired Subscription uses Automatic approval on `stable-3.5` |
 | `manifests/10-images/`, `config/` | Git BuildConfigs with explicit Dockerfile/context paths, source commit and image locks | Builds have reviewable inputs; deployments can select immutable image digests |
 | `manifests/20-mlflow/` | MLflow custom resource, PostgreSQL/PVC and ODF object-bucket storage | Share tracking metadata/artifacts across the event instead of installing 50 tracking servers |
-| `manifests/30-participant/project/` | Namespace, service account, RoleBindings, quota, limits, ingress policy and image-pull grant | Repeatable separation and resource boundaries for `user01`–`user50`; project labels enable OpenShift AI discovery |
+| `manifests/30-participant/project/` | Namespace, service account, RoleBindings, quota, limits, ingress policy and image-pull grant | Repeatable separation and resource boundaries for `user1`–`user50`; project labels enable OpenShift AI discovery |
 | Participant model configuration | External endpoint/model parameters and a namespace-local model Secret | Reuse the provided model API directly; unused AI asset registration has been removed from the lab |
 | `scripts/` and `scripts/helpers/` | Thin batch entry commands, native `oc process` into server-side apply, Secret bootstrap and waits | Apply templates directly for a user range without generating 50 manifest trees; persistent configuration stays in YAML |
 | `docs/TEARDOWN.md` | Exercise reset, participant deletion and full platform/storage removal | State clearly what is retained, including notebook PVCs and shared MLflow history |
@@ -127,16 +127,16 @@ three changed services; the MCP code is unchanged.
 Create the model Secret from a private file after creating the namespace:
 
 ```bash
-oc create secret generic model-api-key -n tableschnappi-user01 \
+oc create secret generic model-api-key -n tableschnappi-user1 \
   --from-file=api_key=/private/path/model-api-key \
   --dry-run=client -o yaml | oc apply --server-side -f -
 
-helm template tableschnappi charts/tableschnappi -n tableschnappi-user01 \
-  -f my-values.yaml --set workbench.name=user01 --set workbench.username=user01 \
-  > /tmp/user01.yaml
+helm template tableschnappi charts/tableschnappi -n tableschnappi-user1 \
+  -f my-values.yaml --set workbench.name=user1 --set workbench.username=user1 \
+  > /tmp/user1.yaml
 # Read the objects before installing:
-helm upgrade --install tableschnappi charts/tableschnappi -n tableschnappi-user01 \
-  -f my-values.yaml --set workbench.name=user01 --set workbench.username=user01 \
+helm upgrade --install tableschnappi charts/tableschnappi -n tableschnappi-user1 \
+  -f my-values.yaml --set workbench.name=user1 --set workbench.username=user1 \
   --wait --timeout 15m
 ```
 
@@ -145,8 +145,8 @@ whole output does not reproduce Helm's dependency waits/hook order. To inspect
 one resource's manual equivalent, use `--show-only`, for example:
 
 ```bash
-helm template tableschnappi charts/tableschnappi -n tableschnappi-user01 \
-  -f my-values.yaml --set workbench.name=user01 --set workbench.username=user01 \
+helm template tableschnappi charts/tableschnappi -n tableschnappi-user1 \
+  -f my-values.yaml --set workbench.name=user1 --set workbench.username=user1 \
   --show-only templates/workbench/notebook.yaml
 ```
 
@@ -160,7 +160,7 @@ creating fifty source YAML directories:
 
 ```bash
 for number in {1..50}; do
-  participant=$(printf 'user%02d' "$number")
+  participant=$(printf 'user%d' "$number")
   helm upgrade --install tableschnappi charts/tableschnappi \
     -n "tableschnappi-$participant" -f my-values.yaml \
     --set "workbench.name=$participant" --set "workbench.username=$participant" \
@@ -326,7 +326,7 @@ the workbench source ref preserves an existing checkout and will not refresh it.
 For a Helm-only uninstall:
 
 ```bash
-helm uninstall tableschnappi -n tableschnappi-user01 --wait
+helm uninstall tableschnappi -n tableschnappi-user1 --wait
 ```
 
 The release owns its notebook PVC. Namespace, supplied Secrets/source ConfigMaps,

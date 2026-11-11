@@ -27,12 +27,12 @@ its pipelines-enabled default.
 Create the external model Secret from a private file, not an inline Helm value:
 
 ```bash
-oc create secret generic model-api-key -n tableschnappi-user01 \
+oc create secret generic model-api-key -n tableschnappi-user1 \
   --from-file=api_key=/private/path/model-api-key
-helm template tableschnappi charts/tableschnappi -n tableschnappi-user01 \
-  -f my-values.yaml > /tmp/user01.yaml
+helm template tableschnappi charts/tableschnappi -n tableschnappi-user1 \
+  -f my-values.yaml > /tmp/user1.yaml
 # Inspect the rendered YAML, then install:
-helm upgrade --install tableschnappi charts/tableschnappi -n tableschnappi-user01 \
+helm upgrade --install tableschnappi charts/tableschnappi -n tableschnappi-user1 \
   -f my-values.yaml --wait --timeout 15m
 ```
 
@@ -122,7 +122,7 @@ For the event's current plain-apply deployment, there is no Helm release to
 upgrade: plan a separate ownership/PVC migration or reset, after merge.
 
 ```bash
-helm uninstall tableschnappi -n tableschnappi-user01 --wait
+helm uninstall tableschnappi -n tableschnappi-user1 --wait
 ```
 
 Export participant files first: the release owns the workbench PVC. If garak
