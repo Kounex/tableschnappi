@@ -4,6 +4,11 @@ A better-looking menu answer might hide a regression elsewhere. This exercise
 calls the real restaurant API and logs a small comparison as MLflow runs;
 it uses no additional LLM judge.
 
+Follow the [timed lab flow](README.md#your-hour): baseline at minutes 22–27,
+prompt editing/activation in MLflow at 27–40, candidate comparison at 40–50.
+The model and agent run in the restaurant stack. This notebook triggers the
+same application through HTTP; it does not run an independent agent.
+
 ## 1. Record the baseline
 
 Before changing your prompt, open `mlflow-evaluation.ipynb` in the workbench.
@@ -36,4 +41,6 @@ A higher formatting score alone does not make a better assistant.
 **Challenge:** change one instruction, predict which cases should change,
 and run another candidate batch. Keep the dataset fixed for a fair comparison.
 
-Restore `active` to `baseline` when finished. Keep the comparison runs.
+After comparing, move `active` to the version selected by `baseline` in MLflow.
+Keep the comparison runs. Leave the prompt unchanged during the optional
+guardrail exercise so its effect can be distinguished from your prompt change.

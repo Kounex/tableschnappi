@@ -2,21 +2,56 @@
 
 Your instructor provides your account, restaurant URL, OpenShift AI URL and
 MLflow URL. Use your own project/workspace, `tableschnappi-userNN`.
-Keep the restaurant and MLflow open in separate tabs. Use synthetic data.
+Keep the restaurant, MLflow and your workbench open in separate tabs. Use
+synthetic data. The learning loop is **predict → chat → inspect → change → compare**.
 
-| Time | Exercise |
+## Your hour
+
+| Time | Exercise | What to look for |
+|---|---|---|
+| 0–5 min | Sign in, open the restaurant, MLflow workspace and workbench | All three belong to your `userNN` project |
+| 5–17 min | [Follow three chat turns](mlflow-tracing-workshop.md) | Clarification, a menu tool call, and uncertainty about unavailable information |
+| 17–22 min | [Rate an answer and inspect its feedback](mlflow-tracing-workshop.md#3-give-feedback) | Technical success and answer quality are different |
+| 22–27 min | [Record the five-case baseline](mlflow-evaluation-workshop.md#1-record-the-baseline) in the notebook | Save evidence before changing anything |
+| 27–40 min | [Create and activate a system-prompt version](mlflow-prompts-workshop.md) in MLflow | Repeat a question; find the new version and changed instructions in its trace |
+| 40–50 min | [Record the candidate and compare](mlflow-evaluation-workshop.md#2-record-the-candidate) | Inspect several answers and tool choices, not just the best example |
+| 50–57 min | Optional: [try a guardrail](guardrails-workshop.md), steps 2–4 with an instructor-prepared policy | A guard block takes a different execution path from an agent refusal |
+| 57–60 min | Restore the baseline and share one finding | Keep versions, traces and comparisons as evidence |
+
+Keep the candidate active until its comparison batch finishes. Leave guardrails
+unchanged for both batches. Before the optional guardrail exercise, return the
+prompt to baseline and keep it fixed while comparing policy behavior. If time
+is short, skip the optional guardrail branch.
+The full guardrails guide and competitor challenge can be completed afterwards.
+
+## What runs where?
+
+| Place | Role |
 |---|---|
-| 5 min | Sign in, open the restaurant and your MLflow workspace |
-| 17 min | [Follow a chat turn and rate an answer](mlflow-tracing-workshop.md) |
-| 15 min | [Change and restore the restaurant prompt](mlflow-prompts-workshop.md) |
-| 13 min | [Compare five questions](mlflow-evaluation-workshop.md) |
-| 7 min, optional | [Try a guardrail](guardrails-workshop.md), steps 2–4 with an instructor-prepared policy |
-| 3 min | Restore the baseline and share one finding |
+| MLflow UI | Inspect traces/feedback; create and compare prompt versions; move `active` to a version |
+| Restaurant stack | Run the LangGraph agent, call the model and MCP tools, and log the actual chat traces |
+| Workbench notebook | Send test questions to that restaurant API and record comparison results |
 
-For the comparison exercise, record the baseline batch before changing your
-prompt, then return to record the candidate batch. Leave guardrails unchanged
-until both batches finish. The full guardrails guide and its competitor
-challenge can also be completed after the session.
+`restaurant-assistant-prompt` supplies the restaurant agent's **system prompt**.
+The assistant combines it with date/seasonal context and the conversation.
+Moving `active` changes the version used when the agent next handles a turn;
+the agent still executes in the restaurant stack. The notebook neither runs a
+replacement agent nor changes the alias. Reservation checks enforced in code
+remain in place when you edit the prompt.
+
+This guided notebook differs from the independent-agent examples elsewhere in
+the repository. Use `mlflow-evaluation.ipynb` for this lab.
+
+## Finish and restore
+
+Move `active` back to the version selected by `baseline`. If you changed the
+NeMo policy, restore its saved text and follow the guardrail guide's restart and
+warmup instructions. Start a New chat and verify the baseline prompt version.
+Do not delete your namespace, workbench or MLflow history.
+
+You have completed the core lab when you can show a tool span, identify the
+prompt version, find persisted feedback, and explain a baseline/candidate
+difference using the same test question.
 
 In the workbench, open `tableschnappi/workshop/`. Dependencies, the model and
 MLflow authentication should already be configured. Ask your instructor if a

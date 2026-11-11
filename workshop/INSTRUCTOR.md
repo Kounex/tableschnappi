@@ -32,6 +32,13 @@ and existing namespace authorization remain the isolation boundary.
 
 ## Rehearse
 
+Use the chronological flow in [README.md](README.md#your-hour). Record the
+baseline before participants activate a candidate, and defer restoration until
+the candidate batch finishes. Keep the same NeMo policy for both prompt batches.
+Explain that MLflow stores/activates the system prompt, the restaurant executes
+the agent, and the notebook only drives test requests. Skip the optional guardrail
+branch if a group needs more time for the core comparison.
+
 1. As two real participants, follow `README.md`; check own-workspace logging
    and foreign-workspace denial. Test trace links with normal browser login.
 2. Verify prompt creation alone leaves the app unchanged; moving active changes

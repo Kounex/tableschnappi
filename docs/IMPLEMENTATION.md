@@ -103,6 +103,11 @@ This loop creates releases sequentially; it is not a transaction or load test.
 Previously, every agent step loaded the hardcoded `@latest` prompt. Publishing
 any version could change the running app after an SDK cache delay.
 
+The registered text is the restaurant agent's system prompt: instructions for
+answering and choosing tools. Editing/activating it happens in MLflow. Execution
+stays in the restaurant stack; the guided notebook only triggers restaurant API
+requests. The application still enforces reservation rules in code.
+
 Now `PROMPT_URI` is configurable. The workshop profile selects
 `prompts:/restaurant-assistant-prompt@active` and sets
 `MLFLOW_ALIAS_PROMPT_CACHE_TTL_SECONDS=0`. The default profile retains `@latest`
