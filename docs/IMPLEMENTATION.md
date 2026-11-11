@@ -108,7 +108,9 @@ A RoleBinding refers to a ClusterRole but grants it only in the binding's
 namespace. It is not a ClusterRoleBinding. The workbench container name must
 also match the Notebook name: the native MLflow webhook locates that container
 by name before injecting the connection/authentication environment. The chart
-now follows that platform convention. Shared MLflow verifies namespace
+now follows that platform convention. Jupyter also receives the same
+`NOTEBOOK_ARGS` as a dashboard-created workbench: the platform gateway/RBAC proxy
+handles authentication, without a second Jupyter token prompt. Shared MLflow verifies namespace
 access: setting another workspace string alone does not authorize access.
 
 ## 2. Inspect and install one participant manually

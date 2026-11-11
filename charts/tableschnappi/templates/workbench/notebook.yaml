@@ -108,6 +108,13 @@ spec:
               name: notebook-port
               protocol: TCP
           env:
+            # Match dashboard-created notebooks: the platform gateway/RBAC proxy
+            # authenticates access, so Jupyter must not ask for a second token.
+            - name: NOTEBOOK_ARGS
+              value: >-
+                --ServerApp.port=8888 --ServerApp.token='' --ServerApp.password=''
+                --ServerApp.base_url=/notebook/{{ .Release.Namespace }}/{{ include "tableschnappi.workbenchName" . }}
+                --ServerApp.quit_button=False
             - name: NOTEBOOK_BASE_URL
               value: "/notebook/{{ .Release.Namespace }}/{{ include "tableschnappi.workbenchName" . }}"
             # Through the model helpers, like every other template. These read

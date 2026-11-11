@@ -135,6 +135,8 @@ class WorkshopTests(unittest.TestCase):
         notebook = by_kind(objects, "Notebook")[0]
         env = {item["name"]: item.get("value") for item in notebook["spec"]["template"]["spec"]["containers"][0]["env"]}
         self.assertEqual(env["RESTAURANT_API_URL"], "http://tableschnappi-backend.tableschnappi-user01.svc.cluster.local:3001")
+        self.assertIn("--ServerApp.token=''", env["NOTEBOOK_ARGS"])
+        self.assertIn("--ServerApp.password=''", env["NOTEBOOK_ARGS"])
 
     def test_source_pin_preserves_edits_and_retries_interrupted_fetch(self):
         notebook = by_kind(render(), "Notebook")[0]
