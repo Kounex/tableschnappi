@@ -63,8 +63,8 @@ class LabTests(unittest.TestCase):
         self.assertEqual(result[3], {'status': 'not_used'})
 
     def test_trace_link_includes_workspace_and_path_prefix(self):
-        with patch.object(app, 'MLFLOW_UI_URL', 'https://ai.example.com/mlflow'), patch.object(app, 'EXPERIMENT_ID', '42'), patch.dict(os.environ, {'MLFLOW_WORKSPACE': 'tableschnappi-user01'}):
-            self.assertEqual(app.trace_url('tr-123'), 'https://ai.example.com/mlflow/#/experiments/42/traces/tr-123?workspace=tableschnappi-user01')
+        with patch.object(app, 'MLFLOW_UI_URL', 'https://ai.example.com/mlflow'), patch.object(app, 'EXPERIMENT_ID', '42'), patch.dict(os.environ, {'MLFLOW_WORKSPACE': 'tableschnappi-user1'}):
+            self.assertEqual(app.trace_url('tr-123'), 'https://ai.example.com/mlflow/#/experiments/42/traces/tr-123?workspace=tableschnappi-user1')
         with patch.object(app, 'MLFLOW_UI_URL', ''):
             self.assertIsNone(app.trace_url('tr-123'))
 
