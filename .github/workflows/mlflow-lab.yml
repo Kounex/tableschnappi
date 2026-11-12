@@ -18,8 +18,7 @@ jobs:
       - run: npx tsc --noEmit -p packages/backend/tsconfig.json
       - run: npx tsx --test packages/backend/test/feedback.test.ts
       - run: pip install -r packages/mlflow-proxy/requirements.txt pyyaml
-      - name: Check participant notebook imports
-        working-directory: workshop
-        run: python -c "from helpers.lab_support import active_prompt, run_cases"
+      - name: Execute agent notebook against local model and MCP stubs
+        run: python -m unittest discover -s workshop/tests -v
       - run: python -m unittest discover -s packages/mlflow-proxy/tests -v
       - run: python -m unittest discover -s charts/tableschnappi/tests -v

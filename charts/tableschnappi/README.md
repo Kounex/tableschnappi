@@ -89,7 +89,7 @@ MCP registration is a shared singleton. No MaaS/Kuadrant gateway is installed.
 
 `guardrails.enabled: true` keeps NeMo available. The multi-user profile sets
 `shieldsEnabled: true` and retains the empty initial NeMo policy, matching
-`workshop/05-guardrails.md`. Its assistant-settings ConfigMap controls
+`workshop/03-guardrails.md`. Its assistant-settings ConfigMap controls
 `GUARDRAILS_ENABLED`; restart the assistant after changing that setting. After enabling
 policies/restarting NeMo, warm it with allowed/blocked requests before a chat and
 inspect traces/logs for fail-open: the existing 15-second timeout/fail-open policy

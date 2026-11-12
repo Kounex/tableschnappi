@@ -158,6 +158,8 @@ spec:
             {{- end }}
             - name: MODEL_BASE_URL
               value: "{{ include "tableschnappi.modelEndpoint" . }}/v1"
+            - name: MODEL_EXTRA_BODY
+              value: {{ .Values.model.extraBody | quote }}
             - name: MODEL_NAME
               value: {{ include "tableschnappi.modelName" . | quote }}
             {{- if include "tableschnappi.modelAuthEnabled" . }}

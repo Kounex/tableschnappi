@@ -1,6 +1,10 @@
-# Direct dependencies for the guided lab, preinstalled by the instructor.
-# The assistant container retains its separate, fully resolved requirements.txt.
+# Direct dependencies preinstalled in the guided agent workbench.
+# Use the same tested agent-library versions as the assistant container.
 mlflow[kubernetes]==3.17.1
+langchain==1.4.6
+langchain-core==1.6.12
+langchain-openai==1.7.2
+langgraph==1.2.16
 # Match the pinned RHOAI base: Feast requires pandas<3, KFP pins requests.
 pandas==2.3.3
 requests==2.33.0

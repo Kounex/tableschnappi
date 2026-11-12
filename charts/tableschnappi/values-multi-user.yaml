@@ -39,7 +39,7 @@ workbench:
   repoRef: 5e4396649a7dbef871a2745781733585c77683d1
 guardrails:
   enabled: true
-  # Match workshop/05-guardrails.md: shields connected, NeMo input policy initially empty.
+  # Match workshop/03-guardrails.md: shields connected, NeMo input policy initially empty.
   shieldsEnabled: true
 aiAsset:
   enabled: false
