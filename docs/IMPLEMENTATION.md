@@ -6,8 +6,9 @@ The multi-user chart changes (`d030c5f`) and
 upstream and its chart PR is separate. A real `user1` pilot has been rebuilt and rehearsed on the replacement cluster.
 The old lab and AI installation were removed while preserving CTFd. The remaining
 accounts and a 50-user capacity rehearsal are separate steps. The browser-first
-workshop and independent agent revision described below has local regression
-coverage; its rebuilt workbench and complete cluster walkthrough are pending.
+workshop and independent agent now pass the real single-participant rehearsal,
+including native configuration, all tracing modes and Console guardrail edits.
+See [validation](VALIDATION.md) for the checks and remaining capacity limits.
 
 ## The pitch in one minute
 
@@ -398,5 +399,6 @@ The replacement started with an operator-only bootstrap. Native YAML installed
 the AI components and fresh MLflow storage; five Git image builds and the pinned
 chart installed `user1`. The full comparison/feedback/guardrail flow and native
 browser/workbench access passed there. Source MLflow history was backed up and
-intentionally not restored. The environment runbook's `docs/MIGRATION.md` contains
-the operational sequence, corrections and remaining validation limits.
+intentionally not restored. The public infra runbook's installation, teardown and validation guides contain
+the repeatable operations and remaining limits; source-specific audit records
+are retained privately.

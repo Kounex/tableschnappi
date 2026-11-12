@@ -18,11 +18,44 @@ passing checks, including the empty initial policy/connected shield and the
 workbench provider-option setting. Helm lint and local documentation links pass. They establish instrumentation
 behavior, not real-model quality, gateway compatibility or 50-user capacity.
 
-The new workbench dependencies/image and complete revised attendee journey
-still need a cluster rebuild/rehearsal. Existing notebook PVCs retain their old
-source. Use the infrastructure runbook's explicit reset/recreate when rolling
-this revision out. The earlier comparison artifacts below describe the removed
-comparison driver, not a step attendees should run now.
+## Live browser-first pilot — 2026-11-12
+
+Both workshop/infra PRs were merged and the existing `user1` pilot was rebuilt
+through the infra runbook's explicit `1 1` reset/apply commands. Five native
+OpenShift Git builds completed from image-input commit `17276da`; the prepared
+workbench introduced no dependency conflicts over its pinned RHOAI base. Its
+runtime image is recorded by digest in the infra image lock. Shared MLflow data
+was retained and workbench files were backed up privately before the reset.
+The corrected source pin is `9da488c`; the UTF-8 client fix is notebook source,
+so the image recipes did not need rebuilding for it.
+
+| Check | Live result |
+|---|---|
+| Human SSO | Real `user1:user1` opens its project, MLflow and Jupyter; the revised notebook opens with Python 3.12 |
+| Native configuration | Model Secret/service URLs and native `kubernetes-namespaced` auth are injected; no token/key/URL entry or package install |
+| Both tracing modes | Real menu tool call; one custom root, graph/model spans, explicit MCP and format spans |
+| Autolog only | Real menu tool call and graph/model spans, without custom turn/MCP/format boundaries |
+| Manual only | Custom turn/MCP/format spans, without framework/model internals |
+| Tracing off | Real agent/menu execution with no new trace or stale reported trace ID |
+| MCP off | One model call, no executed tools/MCP spans; separate wait-time case used `get_wait_time` |
+| Browser prompt exercise | Two baseline + two candidate restaurant questions used the selected versions; candidate headings appeared in both answers; version creation left active unchanged |
+| Feedback / reset | `user_rating` persisted; active was restored to baseline version 1 |
+| Real participant policy permissions | `user1` saved the guide's policy through the Console YAML editor and restarted NeMo through Actions |
+| Guard behavior | Menu allowed; coding/homework request blocked before `LLM Agent`/tools; stored guard outcomes contained no fail-open |
+| Final baseline | Original empty input policy restored through the Console, NeMo restarted and warmed; evidence retained |
+
+Model/trace checks ran in the actual workbench with its service-account identity
+and the provided Qwen API, not local stubs or an admin token. Human browser SSO,
+notebook navigation and Console editing/restart used the real participant account.
+These are different identities. Six notebook scenarios produced five stored
+traces; the tracing-off turn intentionally produced none. Prompt/guard checks used
+the actual restaurant API and its separate `restaurant-chatbot-traces` experiment.
+The initial failed UTF-8 trace remains as diagnostic history.
+
+These observations establish the pilot's functional path, not 50-user capacity,
+a second real participant's journey, model quality scores or guaranteed answers.
+The earlier comparison artifacts below describe the removed comparison driver,
+not a current attendee step. Current instructions remain in `workshop/README.md`.
 
 ## Earlier restaurant checks
 
