@@ -26,6 +26,10 @@ infra runbook may intentionally remain pinned to the previously deployed version
 until the new image has been built and rehearsed; update both source and image
 inputs together when rolling this workshop out.
 
+The [workbench configuration reference](../charts/tableschnappi/README.md#workbench-environment-and-image)
+shows the exact environment/Secret mapping, native MLflow authentication and
+image/source distinction. Attendees do not configure any credentials or URLs.
+
 Required chart configuration:
 
 - Endpoint/model and the namespace-local existing Secret. Workbench environment

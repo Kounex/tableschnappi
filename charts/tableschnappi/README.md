@@ -151,3 +151,80 @@ set to zero for the lab. `rhoai.mlflowUiUrl` supplies browser trace links; it is
 separate from the tracking URI. Missing UI configuration leaves a copyable
 trace ID. Follow [instructor preparation](../../docs/INSTRUCTOR.md) before
 allocating the roster. Existing workbench content is preserved on upgrades.
+
+### Workbench environment and image
+
+No attendee needs to enter a model key, MLflow token or service URL. The
+[Notebook template](templates/workbench/notebook.yaml) and native AI controller
+provide these settings to the Python process:
+
+| Setting | Supplied by |
+|---|---|
+| `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_AUTH` | Native Notebook annotation `opendatahub.io/mlflow-instance: mlflow`; auth mode is `kubernetes-namespaced` |
+| MLflow bearer token | Kubernetes projects the workbench service account token at `/var/run/secrets/kubernetes.io/serviceaccount/token`; the MLflow SDK reads it, including rotation |
+| `MLFLOW_WORKSPACE` | Helm release namespace, for example `tableschnappi-user1` |
+| `OPENAI_API_KEY` | `secretKeyRef` to `model.existingSecret`, key `model.secretKey` |
+| `MODEL_BASE_URL`, `MODEL_NAME` | `model.endpoint` + `/v1`, and `model.name` |
+| `MODEL_EXTRA_BODY` | `model.extraBody`; enables/disables the optional Qwen request setting |
+| `MCP_URL`, `RESTAURANT_API_URL`, `GUARDRAILS_URL` | Helm computes namespace-local service DNS for this release |
+| `MLFLOW_UI_URL` | `rhoai.mlflowUiUrl`, for browser navigation |
+
+The chart also creates the workbench service account and namespace-local
+MLflow integration RoleBinding. Human browser SSO and the notebook's service
+account are separate identities with access to the same workspace. An environment
+variable selects a workspace; RBAC determines permission to use it.
+
+For example, a rendered Notebook contains the following pieces (excerpt):
+
+```yaml
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: user1
+  namespace: tableschnappi-user1
+  annotations:
+    opendatahub.io/mlflow-instance: mlflow
+spec:
+  template:
+    spec:
+      serviceAccountName: user1
+      containers:
+        - name: user1
+          # The prepared image digest is supplied as workbench.image.
+          env:
+            - name: MLFLOW_WORKSPACE
+              value: tableschnappi-user1
+            - name: MODEL_BASE_URL
+              value: https://model.example.com/v1
+            - name: MODEL_NAME
+              value: example-model
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: endpoint-api-key-1
+                  key: api_key
+            - name: MCP_URL
+              value: http://tableschnappi-mcp.tableschnappi-user1.svc.cluster.local:3000/mcp
+            - name: RESTAURANT_API_URL
+              value: http://tableschnappi-backend.tableschnappi-user1.svc.cluster.local:3001
+```
+
+This is an explanatory excerpt, not another manifest to apply. MLflow URI/auth
+are added by OpenShift AI after the Notebook is created, rather than copied into
+this template. The notebook checks configuration without displaying credentials.
+It does not set `MLFLOW_TRACKING_TOKEN` or ask attendees to paste a token.
+
+The **Notebook CR is YAML**; the **Jupyter notebook is a source file** at
+`workshop/agent-playground.ipynb`. The init container seeds pinned source onto
+the workbench PVC. The image contains Python/Jupyter and dependencies; it does
+not contain participant secrets or overwrite edited notebooks.
+
+The prepared image recipe is
+[`workshop/helpers/Dockerfile.workbench`](../../workshop/helpers/Dockerfile.workbench).
+It extends a digest-pinned Red Hat RHOAI Python 3.12 data-science workbench image
+and installs [`requirements.txt`](../../workshop/helpers/requirements.txt).
+The [infra repository](https://github.com/Kounex/summit-connect-mlflow-lab-infra)
+currently builds it with native `BuildConfig/tableschnappi-workbench` in
+`tableschnappi-demo`, stores it in the integrated registry and sets the resulting
+digest as `workbench.image`. The application GitHub image workflow currently
+publishes the service images, not this workbench image.

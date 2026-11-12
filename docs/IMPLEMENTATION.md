@@ -356,7 +356,7 @@ artifact deletion belongs to the platform teardown runbook.
 | Change | Technical detail | Effect / manual equivalent |
 |---|---|---|
 | Prepared workbench | `workshop/helpers/Dockerfile.workbench` installs pinned MLflow Kubernetes authentication and agent dependencies | Build once and set `workbench.image` to its digest; attendees can run the notebook immediately |
-| Native MLflow injection | The main container name must equal the Notebook name, and `metadata.annotations` selects `mlflow` | The ODH notebook controller injects `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_AUTH` and the token audience. Check the rendered Notebook rather than pasting tokens |
+| Native MLflow injection | The main container name must equal the Notebook name, and `metadata.annotations` selects `mlflow` | The ODH notebook controller injects `MLFLOW_TRACKING_URI` and `MLFLOW_TRACKING_AUTH`; Kubernetes projects the service-account token. Check the rendered Notebook rather than pasting tokens |
 | Native Jupyter startup | `NOTEBOOK_ARGS` supplies port, empty Jupyter token/password and the notebook base URL; omit `NOTEBOOK_BASE_URL`, which the image would turn into a duplicate argument | OpenShift gateway and RBAC proxy authenticate the workbench. Jupyter opens without a second login; duplicate base URL arguments prevent startup |
 | Verified workbench TLS | Removed `MLFLOW_TRACKING_INSECURE_TLS` from the notebook | The native gateway certificate validates normally; no insecure setting is needed for this connection |
 | Consistent participant names | Chart profile, tests and docs use `user1`–`user50` | The namespace is `tableschnappi-user1`, Notebook/service account `user1`, and human RoleBinding subject `user1` |

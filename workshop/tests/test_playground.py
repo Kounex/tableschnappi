@@ -75,7 +75,7 @@ class PlaygroundTests(unittest.TestCase):
             'MLFLOW_TRACKING_AUTH': '', 'MLFLOW_WORKSPACE': 'default',
             'MODEL_BASE_URL': url + '/v1', 'MODEL_NAME': 'local-test-model',
             'MODEL_EXTRA_BODY': 'false', 'OPENAI_API_KEY': 'local-test-only',
-            'MCP_URL': url + '/mcp', 'MLFLOW_ENABLE_ASYNC_TRACE_LOGGING': 'false',
+            'MCP_URL': url + '/mcp', 'RESTAURANT_API_URL': url, 'MLFLOW_ENABLE_ASYNC_TRACE_LOGGING': 'false',
         })
         cls.environment.start()
         mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_URI'])
