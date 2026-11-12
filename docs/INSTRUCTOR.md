@@ -31,6 +31,10 @@ existing prompt versions and aliases on upgrades. For a fresh workshop, verify
 both aliases select the intended baseline. Per-participant MLflow workspaces
 and existing namespace authorization remain the isolation boundary.
 
+Participant demo accounts use matching usernames and passwords (`user1:user1`
+through `user50:user50`), with no first-login password change. The environment
+runbook provisions and reapplies this convention to its recorded accounts.
+
 ## Rehearse
 
 Use the [chronological attendee flow](../workshop/README.md#your-hour). Record the

@@ -1,7 +1,9 @@
 # Start here: explore the restaurant with MLflow
 
 Your instructor provides your account, restaurant URL, OpenShift AI URL and
-MLflow URL. Use your own project/workspace, `tableschnappi-userN`.
+MLflow URL. Demo credentials match: username `user1`, password `user1`
+(and likewise `user2:user2` through `user50:user50`). Use your own
+project/workspace, `tableschnappi-userN`.
 Read the numbered guides in order. Open `comparison.ipynb` only when steps
 02 and 04 tell you to; `helpers/` contains implementation files you do not need
 to open or run.
