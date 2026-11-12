@@ -22,10 +22,17 @@ def rpc(url, method, params=None):
     )
     response.raise_for_status()
     if 'text/event-stream' in response.headers.get('Content-Type', ''):
-        events = response.text.replace('\r\n', '\n').split('\n\n')
-        messages = [json.loads('\n'.join(line[5:].lstrip() for line in event.splitlines()
-                                        if line.startswith('data:')))
-                    for event in events if any(line.startswith('data:') for line in event.splitlines())]
+        # SSE is UTF-8. requests.text can default to Latin-1 for text/*;
+        # Unicode menu bytes then become line separators and corrupt JSON.
+        text = response.content.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n')
+        messages = []
+        for event in text.split('\n\n'):
+            # Only protocol LF separates fields; str.splitlines() would also
+            # split valid Unicode line separators inside a JSON string.
+            data = [line[5:].removeprefix(' ') for line in event.split('\n')
+                    if line.startswith('data:')]
+            if data:
+                messages.append(json.loads('\n'.join(data)))
         payload = next((message for message in messages if message.get('id') == request_id), None)
     else:
         payload = response.json()

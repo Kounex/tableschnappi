@@ -47,12 +47,12 @@ class StubHandler(BaseHTTPRequestHandler):
                                           'required': ['slug']}}
                          for name in ['get_menu', 'get_wait_time', 'make_reservation']]}
             else:
-                result = {'content': [{'type': 'text', 'text': 'Vegetarian udon'}],
+                result = {'content': [{'type': 'text', 'text': 'Vegetarian udon · 駅の野菜うどん\u2028menu'}],
                           'isError': self.server.tool_error}
             payload = {'jsonrpc': '2.0', 'id': body['id'], 'result': result}
             if self.server.sse:
                 # Exercise multiline SSE data framing as well as ordinary JSON.
-                data = 'event: message\n' + '\n'.join('data: ' + line for line in json.dumps(payload, indent=1).splitlines()) + '\n\n'
+                data = 'event: message\n' + '\n'.join('data: ' + line for line in json.dumps(payload, indent=1, ensure_ascii=False).split('\n')) + '\n\n'
                 content_type = 'text/event-stream'
             else:
                 data, content_type = json.dumps(payload), 'application/json'
@@ -130,6 +130,11 @@ class PlaygroundTests(unittest.TestCase):
         self.assertTrue(any(span.span_type in ('LLM', 'CHAT_MODEL') for span in spans))
         self.assertEqual(sum(span.parent_id is None for span in spans), 1)
         self.assertEqual(set(self.server.roles), {'readonly'})
+
+    def test_sse_preserves_utf8_menu_text_and_unicode_line_separators(self):
+        self.server.sse = True
+        output = self.scope['call_read_tool'](os.environ['MCP_URL'], 'get_menu', {'slug': 'sakura'})
+        self.assertEqual(output, 'Vegetarian udon · 駅の野菜うどん\u2028menu')
 
     def test_autolog_only_keeps_model_spans_without_custom_boundaries(self):
         self.scope['MANUAL_SPANS'] = False

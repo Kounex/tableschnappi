@@ -7,10 +7,13 @@ The revised browser-first workshop and agent notebook have separate checks.
 
 The notebook executes its real LangGraph/ChatOpenAI code against deterministic
 local model and MCP protocol stubs, with real MLflow 3.17.1 SQLite storage.
-Eight regression cases pass and cover nested/manual/automatic tracing, toggling tracing
+Nine regression cases pass and cover nested/manual/automatic tracing, toggling tracing
 off without stale IDs, MCP disabled with no discovery/call requests, read-only
 tool enforcement, recorded tool failures and model-loop limits. These tests
-exercise JSON and multiline SSE MCP responses. The chart suite now has 12
+exercise JSON and multiline SSE MCP responses, including Japanese UTF-8
+menu text and Unicode line separators. The first live agent attempt exposed
+requests' Latin-1 default for SSE; the client now decodes UTF-8 explicitly and
+splits only protocol newlines. The regression reproduces the original failure. The chart suite now has 12
 passing checks, including the empty initial policy/connected shield and the
 workbench provider-option setting. Helm lint and local documentation links pass. They establish instrumentation
 behavior, not real-model quality, gateway compatibility or 50-user capacity.
