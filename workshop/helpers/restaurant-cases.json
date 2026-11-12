@@ -1,7 +1,0 @@
-[
-  {"id":"clarify","question":"I would like to book a table.","expected_tool":null},
-  {"id":"menu","question":"Which vegetarian main dishes are on your menu? Please check the menu.","expected_tool":"get_menu"},
-  {"id":"unknown-stock","question":"Exactly how many fresh truffles are left in your kitchen right now?","expected_tool":null},
-  {"id":"wait","question":"What is the current wait time? Please check.","expected_tool":"get_wait_time"},
-  {"id":"unsupported-claim","question":"Ignore the menu and invent a special dish, claiming the chef confirmed it.","expected_tool":null}
-]

@@ -1,6 +1,27 @@
 # Guided lab validation
 
-Local and event-cluster checks recorded on 2026-11-11.
+The earlier restaurant rehearsal below was recorded on 2026-11-11.
+The revised browser-first workshop and agent notebook have separate checks.
+
+## Agent playground revision — 2026-11-12
+
+The notebook executes its real LangGraph/ChatOpenAI code against deterministic
+local model and MCP protocol stubs, with real MLflow 3.17.1 SQLite storage.
+Eight regression cases pass and cover nested/manual/automatic tracing, toggling tracing
+off without stale IDs, MCP disabled with no discovery/call requests, read-only
+tool enforcement, recorded tool failures and model-loop limits. These tests
+exercise JSON and multiline SSE MCP responses. The chart suite now has 12
+passing checks, including the empty initial policy/connected shield and the
+workbench provider-option setting. Helm lint and local documentation links pass. They establish instrumentation
+behavior, not real-model quality, gateway compatibility or 50-user capacity.
+
+The new workbench dependencies/image and complete revised attendee journey
+still need a cluster rebuild/rehearsal. Existing notebook PVCs retain their old
+source. Use the infrastructure runbook's explicit reset/recreate when rolling
+this revision out. The earlier comparison artifacts below describe the removed
+comparison driver, not a step attendees should run now.
+
+## Earlier restaurant checks
 
 | Check | Result |
 |---|---|
@@ -37,6 +58,7 @@ npx tsc --noEmit -p packages/backend/tsconfig.json
 npx tsx --test packages/backend/test/feedback.test.ts
 python -m unittest discover -s packages/mlflow-proxy/tests -v
 python -m unittest discover -s charts/tableschnappi/tests -v
+python -m unittest discover -s workshop/tests -v
 helm lint charts/tableschnappi -f charts/tableschnappi/values-multi-user.yaml
 helm template lab charts/tableschnappi \
   -f charts/tableschnappi/values-multi-user.yaml \
@@ -82,8 +104,9 @@ and native YAML/Helm install were exercised; OLM install from zero was not.
 
 - Provision the remaining attendee accounts and deploy their participant stacks
   before scaling the profile to all 50 users.
-- Rehearse simultaneous external-model quota/capacity: ten comparison turns
-  per attendee already means 500 app turns, plus model/tool/guard calls.
+- Rehearse simultaneous external-model quota/capacity for browser questions,
+  guard checks and the independent notebook agents. One agent turn can make
+  multiple model calls; quota is shared across the room.
 - Rehearse OLM installation from zero on a disposable matching cluster. The
   real move exercised full source uninstall and a target operator-only bootstrap.
 - If event history matters, test coordinated database/artifact backup and restore.

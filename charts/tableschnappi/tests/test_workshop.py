@@ -103,6 +103,20 @@ class WorkshopTests(unittest.TestCase):
         config = next(obj for obj in by_kind(objects, "ConfigMap") if obj["metadata"]["name"].endswith("guardrails-config"))
         parameters = yaml.safe_load(config["data"]["config.yaml"])["models"][0]["parameters"]
         self.assertNotIn("extra_body", parameters)
+        notebook = by_kind(objects, "Notebook")[0]
+        env = {item["name"]: item for item in notebook["spec"]["template"]["spec"]["containers"][0]["env"]}
+        self.assertEqual(env["MODEL_EXTRA_BODY"]["value"], "false")
+
+    def test_guardrails_start_with_empty_input_policy_and_connected_shields(self):
+        objects = render()
+        config = next(obj for obj in by_kind(objects, "ConfigMap") if obj["metadata"]["name"].endswith("guardrails-config"))
+        policy = yaml.safe_load(config["data"]["config.yaml"])
+        self.assertEqual(policy["rails"]["input"]["flows"], [])
+        assistant = next(obj for obj in by_kind(objects, "Deployment") if obj["metadata"]["name"].endswith("mlflow-proxy"))
+        env = {item["name"]: item for item in assistant["spec"]["template"]["spec"]["containers"][0]["env"]}
+        reference = env["GUARDRAILS_ENABLED"]["valueFrom"]["configMapKeyRef"]
+        settings = next(obj for obj in by_kind(objects, "ConfigMap") if obj["metadata"]["name"] == reference["name"])
+        self.assertEqual(settings["data"][reference["key"]], "true")
 
     def test_alias_seed_preserves_participant_selection(self):
         code = (CHART / "files/seed-mlflow.py").read_text()

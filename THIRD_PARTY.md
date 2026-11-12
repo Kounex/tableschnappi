@@ -42,6 +42,10 @@ Notable, by component:
 - **Frontend** (`packages/frontend`): React and react-router-dom (MIT),
   socket.io-client (MIT), react-markdown (MIT), **lucide-react (ISC)**,
   Tailwind CSS, Vite and PostCSS (MIT).
+- **Guided agent workbench** (`workshop/`): MLflow (Apache-2.0), LangChain and
+  LangGraph (MIT), OpenAI Python SDK (Apache-2.0), requests (Apache-2.0).
+  Direct versions are pinned in `workshop/helpers/requirements.txt`; the notebook
+  and minimal stateless MCP client are original project content.
 - **Additional examples** (`examples/`): kfp (Apache-2.0), Docling (MIT), transformers
   (Apache-2.0), pandas and numpy (BSD-3-Clause), matplotlib (PSF-style),
   seaborn (BSD-3-Clause), plotly (MIT), ipywidgets (BSD-3-Clause),

@@ -20,9 +20,10 @@ through tool calls, so whichever model you pick **must support tool calling**.
 ## Dependencies and lockfiles
 
 Container builds are pinned and the pins are checked in. If you change a
-dependency, regenerate the lock in the same commit. The workshop notebook
-requirements are the exception — they install into a workbench interactively
-and keep loose ranges on purpose.
+dependency, regenerate the lock in the same commit. The guided workbench uses pinned direct requirements in
+`workshop/helpers/requirements.txt`, preinstalled by its image build. Keep agent
+library versions aligned with the assistant lock and check the base-image
+dependency comparison. Optional `examples/` inputs retain loose ranges.
 
 The garak lock must be regenerated with `uv`, not `pip-compile`: see the
 header of `packages/mlflow-proxy/requirements-garak.in` for why.
@@ -68,9 +69,9 @@ behind the `INCLUDE_GARAK` build arg.
 - The reservation rules are enforced in code, not in the prompt. The gates are
   `tool_auth` and `_has_user_confirmation` in `packages/mlflow-proxy/app.py`,
   and `TOOL_ROLES` / `roleMayCall` in `packages/mcp-server/src/index.ts`.
-- **There is no test suite.** No runner, no config, no `test` script — this
-  asked for "a test case" for a long time against nothing to add one to. The
-  only automated checks are the greps in `.github/workflows/ci.yml` and the
-  post-install smoke hook, which curls health endpoints. If you change one of
-  the gates above, say in the PR how you convinced yourself the bypass is
-  closed; adding the first real test harness would be a welcome PR in itself.
+- Targeted regression checks live under `packages/mlflow-proxy/tests/`,
+  `charts/tableschnappi/tests/`, `packages/backend/test/` and `workshop/tests/`.
+  See [validation](docs/VALIDATION.md) for commands and scope. The notebook
+  checks use real LangGraph/MLflow with local protocol stubs; they do not replace
+  a participant cluster rehearsal. For gate changes, explain how authorization
+  bypasses were checked, including direct tool execution rather than discovery alone.

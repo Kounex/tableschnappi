@@ -1,6 +1,6 @@
-# 05 — Keep TableSchnappi on the menu
+# 03 — Keep TableSchnappi on the menu
 
-Step 05 is a normal, 15-minute part of the one-hour lab. Complete steps 1–5:
+Step 03 is a normal, 15-minute part of the one-hour lab. Complete steps 1–5:
 observe the unguarded behavior, apply the policy below, restart/warm NeMo, and
 compare the response and MLflow trace. Keep the baseline restaurant prompt
 fixed so you can isolate the policy's effect. Use one off-topic question and
@@ -20,13 +20,27 @@ and Deployment names. For the default release, these are
 
 Sign in to the OpenShift Console with permission to edit ConfigMaps and restart
 the guardrails Deployment in your project. All cluster changes in this workshop
-use the Console user interface. Keep the TableSchnappi app open in a second
-browser tab for testing.
+use the Console user interface. Keep the restaurant and MLflow open in other
+browser tabs. This exercise does not use the workbench.
 
 The default chart keeps the guardrails service and its ConfigMap in place but
 sets `rails.input.flows: []`: no input checks run. The assistant's own prompt
 can still influence its answers, so an off-topic refusal alone does not prove
 that a guardrail is active.
+
+Before sending the first test, open **Workloads → ConfigMaps** in your project,
+then **tableschnappi-guardrails-config → YAML**. Under `data.config.yaml`, confirm:
+
+```yaml
+    rails:
+      input:
+        flows: []
+```
+
+The input policy must start empty. If you see an enabled flow from an earlier
+session, ask your instructor to restore the baseline and restart/warm NeMo.
+Do not change the model configuration, API key reference or assistant shields.
+An empty NeMo input policy does not remove the assistant's own system prompt.
 
 ## 1. Take the assistant off topic
 
@@ -63,16 +77,22 @@ requests while allowing restaurant questions and reservation details.
    copy the existing `config.yaml` and `rails.co` values to your notes for restore.
 
 In the Console YAML editor, locate `config.yaml: |` under `data`.
-Keep its existing `models` section and `passthrough: true`. Replace the
-`rails` section with the following and add `prompts` at the same indentation
-level as `models`, `passthrough`, and `rails` **inside** `config.yaml: |`:
+Keep its existing `models` section and `passthrough: true`.
+
+**First, enable the flow:** replace the empty `rails` section with:
 
 ```yaml
     rails:
       input:
         flows:
           - self check input
+```
 
+**Then, define what it checks:** add `prompts` at the same indentation level as
+`models`, `passthrough`, and `rails`, still **inside** `config.yaml: |`.
+Do both edits before saving:
+
+```yaml
     prompts:
       - task: self_check_input
         content: |
@@ -171,7 +191,7 @@ cases. Model-based checks can make mistakes; record any failures you find.
 
 ## 5. Inspect the change in MLflow
 
-Complete this trace comparison as part of step 05, after the before/after
+Complete this trace comparison as part of step 03, after the before/after
 restaurant requests. Keep the wider prompt suite and competitor challenge for
 extra time. Your instructor enables the assistant's shield path before the lab
 and warms NeMo after the policy restart.
@@ -190,7 +210,7 @@ Put the original `config.yaml` and `rails.co` values saved in step 2 back
 through the Console, restart the
 NeMo Deployment, and ask your instructor to warm it before retesting. If you
 started from the default empty policy, input flows should again be `[]`.
-Do not delete your namespace or comparison traces. Return the restaurant
+Do not delete your namespace or traces. Return the restaurant
 prompt's `active` alias to `baseline` if you changed it in the prompt exercise.
 
 ## Optional challenge: keep competitors off the menu
@@ -217,3 +237,5 @@ to allow restaurant questions does not override it. Repeat the earlier tests
 to check that the original topic restrictions still work.
 
 **Finish:** [restore and wrap up](README.md#finish-and-restore).
+
+**Next:** [04 — Open your workbench and run your own agent](04-agent-playground.md).

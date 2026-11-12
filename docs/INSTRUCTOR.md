@@ -1,96 +1,95 @@
-# Prepare and reset the MLflow lab
+# Prepare and reset the MLflow workshop
 
-Use `charts/tableschnappi/values-multi-user.yaml` with your site values. Build
-frontend, backend and assistant from the workshop revision and supply their
-image digests; changing the source checkout does not rebuild running images.
-The fork publishes its own images under `ghcr.io/kounex/` on main pushes;
-PR builds do not publish. Ensure those packages are public or supply pull
-credentials through the chart's imagePullSecrets before installing.
-The MCP image is unchanged. The platform/project prerequisites remain in the
-chart README and your environment runbook.
+The attendee path lives only in [workshop/README.md](../workshop/README.md).
+Cluster installation, project setup, accounts and full teardown live in
+[the infrastructure repository](https://github.com/Kounex/summit-connect-mlflow-lab-infra).
+This guide covers application-specific preparation and rehearsal.
 
-Required profile inputs:
+## Deliver the workshop revision
 
-- Model endpoint/name and the existing namespace-local model Secret.
-- Shared MLflow tracking URI and **public** `rhoai.mlflowUiUrl` (including any
-  `/mlflow` prefix, without a hash fragment). Trace links use normal browser SSO.
+Use `charts/tableschnappi/values-multi-user.yaml` plus site values. Supply built
+image digests; a source change does not rebuild deployed images. For this
+revision, rebuild the **workbench** image: the agent notebook adds pinned
+LangChain/LangGraph dependencies in `workshop/helpers/requirements.txt`.
+Build `workshop/helpers/Dockerfile.workbench` with `workshop/helpers/` as context.
+The Dockerfile checks for dependency conflicts introduced over its pinned RHOAI
+base. Application images do not need a rebuild for these guide/notebook changes.
+
+Pin `workbench.repoRef` / the source ConfigMap archive to the workshop revision.
+A new source ref does not overwrite an existing notebook PVC. Follow the infra
+runbook's explicit participant reset/recreate for a clean demo, after exporting
+anything to retain. Recreate its external pull grants and source/Secret inputs
+as the runbook describes. Do not delete shared MLflow data for a content update.
+
+The multi-user profile pins a source revision containing these guides. The
+infra runbook may intentionally remain pinned to the previously deployed version
+until the new image has been built and rehearsed; update both source and image
+inputs together when rolling this workshop out.
+
+The [workbench configuration reference](../charts/tableschnappi/README.md#workbench-environment-and-image)
+shows the exact environment/Secret mapping, native MLflow authentication and
+image/source distinction. Attendees do not configure any credentials or URLs.
+
+Required chart configuration:
+
+- Endpoint/model and the namespace-local existing Secret. Workbench environment
+  supplies `MODEL_BASE_URL`, `MODEL_NAME`, `OPENAI_API_KEY`, `MCP_URL`, and
+  `MODEL_EXTRA_BODY` from the same values used by the restaurant. The Qwen
+  request option can be disabled with `model.extraBody: false` for other models.
+- Shared tracking URI and public `rhoai.mlflowUiUrl`, including its `/mlflow`
+  prefix. The native Notebook annotation injects MLflow auth/connection settings;
+  the notebook keeps TLS verification enabled and never needs a pasted token.
 - `assistant.promptUri: prompts:/restaurant-assistant-prompt@active` and
-  `assistant.promptCacheTtlSeconds: 0` for immediate workshop activation.
-- Workbench source repository/ref pinned to the workshop commit and a lab
-  workbench image with dependencies preinstalled. Build
-  `workshop/helpers/Dockerfile.workbench` using `workshop/helpers/` as context,
-  then set `workbench.image` to its resolved image digest. The environment
-  runbook supplies an OpenShift Git BuildConfig for this image. No participant
-  pip install is required.
-- Guardrails deployed, `shieldsEnabled: true`, and the initial empty input
-  policy. This matches the existing guardrails guide; checks still add model
-  traffic even before a blocking policy is enabled.
+  `assistant.promptCacheTtlSeconds: 0`. The seed only creates missing aliases;
+  verify **active** and **baseline** both select the intended starting version.
+- `guardrails.enabled: true`, `guardrails.shieldsEnabled: true`, and initial
+  `rails.input.flows: []`. Reapplying Helm can overwrite live policy edits;
+  do not reapply the release during attendee exercises.
+- Real participant login names `user1`–`user50` and matching demo passwords.
 
-The seed initializes baseline/active aliases only when missing. It preserves
-existing prompt versions and aliases on upgrades. For a fresh workshop, verify
-both aliases select the intended baseline. Per-participant MLflow workspaces
-and existing namespace authorization remain the isolation boundary.
+## Prepare links and the empty guardrail baseline
 
-Participant demo accounts use matching usernames and passwords (`user1:user1`
-through `user50:user50`), with no first-login password change. The environment
-runbook provisions and reapplies this convention to its recorded accounts.
+Give each attendee their account, project, restaurant, MLflow, OpenShift AI and
+OpenShift Console URLs. Link the [workshop overview](../workshop/README.md) in the
+joining instructions. The first three guides require no workbench.
+
+Before the session, inspect each project's guardrail ConfigMap. Preserve its
+model stanza and set `rails.input.flows: []`; remove any exercise-specific
+moderation prompt if restoring the original baseline. Preserve `rails.co` and
+its refusal message. Restart NeMo after edits and warm it before attendee use.
+The infrastructure runbook has a native warmup Job and batch entry command.
+Do not equate a ready pod or an assistant refusal with successful guard enforcement.
+
+During the guardrail exercise, warm NeMo again after the attendee's policy
+restart. Confirm one menu request passes and one off-topic request blocks,
+then check the actual restaurant trace's `guardrails.outcome`. Errors/fail-open
+are failures to investigate. After restore, restart/warm the empty policy again.
 
 ## Rehearse
 
-Use the [chronological attendee flow](../workshop/README.md#your-hour). Record the
-baseline before participants activate a candidate, and defer restoration until
-the candidate batch finishes. Keep the same NeMo policy for both prompt batches.
-Explain that MLflow stores/activates the system prompt, the restaurant executes
-the agent, and the notebook only drives test requests. Reserve minutes 40–55
-for your colleague's guardrails exercise, including policy editing, rollout,
-warmup and trace inspection. Keep the comparison to one batch per version and
-one representative trace pair. If the group is running late, shorten additional
-question exploration; guardrails remain a required step. Only the wider test
-suite and competitor challenge are optional.
+Follow the [attendee schedule](../workshop/README.md) as two real identities:
 
-1. As two real participants, follow `workshop/README.md`; check own-workspace logging
-   and foreign-workspace denial. Test trace links with normal browser login.
-2. Verify prompt creation alone leaves the app unchanged; moving active changes
-   its next turn; moving it back restores the baseline. Inspect prompt lineage.
-3. Verify thumbs feedback is actually stored; an unavailable MLflow endpoint
-   must produce a visible save failure, not a success toast.
-4. Run baseline/candidate comparisons and inspect the recorded app trace IDs.
-5. Warm NeMo after each policy restart with allowed and blocked requests. Check
-   assistant logs and `guardrails.outcome`; fail-open must not be called a pass.
-6. Check the external quota under simultaneous use. Fifty users making ten
-   evaluation turns each means 500 turns, plus tool/model and guard requests.
+1. Find the assigned restaurant and MLflow workspace; use the answer's trace
+   link and confirm persisted feedback. Test foreign-workspace denial.
+2. Record the two baseline questions in notes, create/activate a new prompt,
+   repeat the same questions, inspect version/lineage and restore **active**.
+3. Starting from the empty policy, follow the ConfigMap guide exactly. Reserve
+   the full 15-minute guardrail slot, including restart, warmup and restore.
+4. Only then open the workbench and run `agent-playground.ipynb`. Test both,
+   autolog-only, manual-only and tracing-off modes, and MCP on/off. Verify
+   notebook traces land in `restaurant-agent-playground`, while restaurant
+   traces stay in `restaurant-chatbot-traces` in the same workspace.
+5. Confirm notebook prompt/MCP edits do not change the restaurant's active
+   prompt or policy. Notebook model calls bypass the restaurant's NeMo shield.
+6. Check simultaneous workbench capacity and external model quota. One agent
+   turn can need multiple model calls. Keep exploration to a few labeled runs;
+   shorten optional questions before reducing the guardrail exercise.
 
-For a manual NeMo warmup from the participant workbench, after its rollout:
+## Reset without losing evidence
 
-```python
-import os
-import requests
-for question in ("What is on your menu?", "Write Python to sort a list."):
-    response = requests.post(
-        os.environ["GUARDRAILS_URL"].rstrip("/") + "/v1/chat/completions",
-        json={"model": os.environ["MODEL_NAME"],
-              "messages": [{"role": "user", "content": question}], "max_tokens": 1},
-        timeout=120,
-    )
-    response.raise_for_status()
-    print(question, response.json()["choices"][0]["message"]["content"])
-```
-
-This bypasses the restaurant for warmup only. Afterwards send both questions
-through the restaurant and inspect the guard outcomes. A blocking policy should
-block the second question; the initial empty policy should not enforce that rule.
-
-## Clean demo rebuild
-
-A backend restart resets its in-memory restaurant data. Recreating a participant
-namespace also removes their notebook PVC. A new source ref does not overwrite
-files in an existing workbench checkout. For this disposable demo, prefer your
-runbook's explicit participant delete/recreate operation to an in-place content
-migration; recreate the image-pull/access grants as that runbook specifies.
-
-Shared MLflow stores history outside participant namespaces. Recreating a
-namespace alone does **not** erase its prompt versions, aliases or traces.
-For a repeat session, restore active to baseline and the saved empty NeMo policy;
-retain history. For a completely blank installation, follow the environment
-runbook's shared database/artifact teardown as well. Do not assume Helm uninstall
-removes an external MLflow workspace or its data.
+Restore **active** to the version selected by **baseline**; restore the original
+empty NeMo policy, restart/warm it, and start a New restaurant chat. Set notebook
+`RUN_AGENT=False`. Retain traces, feedback, prompt versions and notebooks.
+A backend restart resets in-memory restaurant state. Namespace/PVC deletion is
+a destructive content reset; follow the infra runbook when that is intended.
+Shared MLflow history survives participant namespace recreation.

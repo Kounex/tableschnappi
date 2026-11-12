@@ -9,4 +9,4 @@ RUN (python -m pip check > /tmp/base-package-check.txt || true) \
     && python -m pip install --no-cache-dir --index-url https://pypi.org/simple -r /tmp/restaurant-lab-requirements.txt \
     && (python -m pip check > /tmp/lab-package-check.txt || true) \
     && python -c "from pathlib import Path; before=set(Path('/tmp/base-package-check.txt').read_text().splitlines()); after=set(Path('/tmp/lab-package-check.txt').read_text().splitlines()); added=after-before-{'No broken requirements found.'}; assert not added, '\\n'.join(sorted(added)); print('No new dependency conflicts relative to the pinned RHOAI base')" \
-    && python -c "import mlflow, pandas, requests; import mlflow.genai; print(mlflow.__version__)"
+    && python -c "import mlflow, pandas, requests, langgraph; from langchain_openai import ChatOpenAI; import mlflow.genai; print(mlflow.__version__)"

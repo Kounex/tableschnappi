@@ -5,7 +5,9 @@ The multi-user chart changes (`d030c5f`) and
 `Kounex/tableschnappi` main. The lab merge is `9c7c638`. Stefan's fork remains
 upstream and its chart PR is separate. A real `user1` pilot has been rebuilt and rehearsed on the replacement cluster.
 The old lab and AI installation were removed while preserving CTFd. The remaining
-accounts and a 50-user capacity rehearsal are separate steps.
+accounts and a 50-user capacity rehearsal are separate steps. The browser-first
+workshop and independent agent revision described below has local regression
+coverage; its rebuilt workbench and complete cluster walkthrough are pending.
 
 ## The pitch in one minute
 
@@ -38,8 +40,8 @@ new restaurant, agent framework or tracing system.
 | Trace navigation | The assistant returns a trace URL and prompt metadata; [the chat widget](../packages/frontend/src/components/ChatWidget.tsx) displays them alongside the configured model and New chat | Attendees can go directly from an answer to its evidence and start independent comparisons |
 | Reliable feedback | Python returns save errors, [Express forwards them](../packages/backend/src/assistant.ts), and the browser offers retry | A success message reflects a successful feedback write rather than hiding a failure |
 | Trace context | Added native session metadata, prompt version/fallback tags, guard outcomes and explicit MCP exception status | Attendees can distinguish model behavior, tool errors and policy enforcement |
-| Comparison | [One notebook helper](../workshop/helpers/lab_support.py) replays five fixed questions through the real restaurant API | Baseline/candidate results refer to the same application attendees use, not a replacement notebook agent |
-| Learning path | [Five numbered guides](../workshop/README.md), one notebook and internal helpers; instructor/development material moved out | Attendees follow one route through the hour; guardrails has a required 15-minute slot |
+| Agent playground | [One notebook](../workshop/agent-playground.ipynb) runs an independent LangGraph agent with visible code and tracing/MCP controls | After using the restaurant, attendees can change instrumentation and observe its effect in a separate experiment |
+| Learning path | [Four numbered guides](../workshop/README.md): browser restaurant/traces, prompt comparison, ConfigMap guardrails, then the workbench | Workbench setup is deferred until the last 15 minutes; guardrails retains its own 15-minute slot |
 | Delivery and checks | Fork-owned GHCR publishing plus [workshop CI](../.github/workflows/mlflow-lab.yml) | Image publishing is separate from the shared Quay organization; regression checks cover the added behavior |
 
 The detailed sections below explain the mechanisms and their manual equivalents.
@@ -48,8 +50,8 @@ For setup and warmup, use [the instructor guide](INSTRUCTOR.md).
 
 ## The platform work around the application
 
-The environment runbook lives separately under `darmstadt-demo-2026-11-10/` in
-our productivity workspace. It prepares the shared cluster and participant
+The environment runbook lives in
+[summit-connect-mlflow-lab-infra](https://github.com/Kounex/summit-connect-mlflow-lab-infra). It prepares the shared cluster and participant
 projects; this application chart installs into that foundation.
 
 | Runbook files | What they define | Why we chose it |
@@ -72,8 +74,9 @@ before Helm, so two installers never own the same workload.
 The lab does not create an AI asset registration: it was a discovery entry
 outside the request path, with no role in the attendee exercises. The restaurant
 assistant and NeMo call the external API with the model Secret. The workbench
-has model credentials for independent exploration, but the guided comparison
-notebook only calls the restaurant API. Shared provider quota remains shared.
+uses the same model credentials for its independent LangGraph agent. That
+agent calls the external model and read-only MCP service directly. Shared
+provider quota remains shared.
 PostgreSQL is a single persistent lab Deployment, not an HA
 operator-managed database. The runbook uses explicit applies; it does not add
 a continuous GitOps controller.
@@ -181,8 +184,8 @@ any version could change the running app after an SDK cache delay.
 
 The registered text is the restaurant agent's system prompt: instructions for
 answering and choosing tools. Editing/activating it happens in MLflow. Execution
-stays in the restaurant stack; the guided notebook only triggers restaurant API
-requests. The application still enforces reservation rules in code.
+stays in the restaurant stack. The final notebook runs a separate agent and
+its local prompt edits do not change this alias. The application still enforces reservation rules in code.
 
 Now `PROMPT_URI` is configurable. The workshop profile selects
 `prompts:/restaurant-assistant-prompt@active` and sets
@@ -253,21 +256,34 @@ returns a failed status, Express forwards it, and the browser displays a retry
 message. Thanks appears only after a successful response. To verify manually,
 rate an answer and find `user_rating` on the corresponding stored trace.
 
-## 5. The workbench compares the actual application
+## 5. The final workbench exercise runs its own agent
 
-Only the current numbered attendee guides and comparison notebook live in
-`workshop/`; implementation files are in `workshop/helpers/`. Instructor setup
-is in `docs/INSTRUCTOR.md`, and optional development examples are in `examples/`.
-`comparison.ipynb` delegates HTTP/MLflow plumbing to `helpers/lab_support.py` and
-reads the five questions in `helpers/restaurant-cases.json`.
+The attendee journey stays in the restaurant/MLflow browser tabs until the final
+workbench exercise. Prompt comparison uses two fixed questions, fresh chats and
+saved trace links. The former five-case comparison notebook and its unused
+helper/case data were removed; there is one current notebook in `workshop/`.
 
-It calls the backend's normal restaurant chat endpoint using `RESTAURANT_API_URL`.
-Each case has a fresh session. It checks actual trace storage, tags app traces
-with the case/variant, and logs a table and simple metrics in
-`restaurant-workshop-comparison`. This is a small comparison using MLflow runs,
-not an LLM judge or a separate implementation of the restaurant agent.
+`agent-playground.ipynb` defines the actual LangGraph model/tool loop in editable
+cells. Its controls toggle `mlflow.langchain.autolog`, explicit root/tool/format
+spans, MCP availability, prompt and temperature. Each question starts a fresh
+conversation; loop/tool limits bound calls. Explicitly disabling autologging on
+later runs prevents a previous kernel setting from continuing to collect spans.
+The notebook logs to `restaurant-agent-playground`; the restaurant still logs to
+`restaurant-chatbot-traces` in the same authorized workspace.
 
-`workshop/helpers/Dockerfile.workbench` adds the pinned lab requirements to the
+The small `helpers/mcp_client.py` only handles stateless JSON-RPC/JSON/SSE and a
+read-tool allowlist. Discovery and execution use `readonly`; mutation tools are
+not offered or executed. With MCP disabled, neither discovery nor tool requests
+are sent. Manual tool spans capture HTTP arguments/results; autologging captures
+the framework/model path. Both tracing modes can be disabled without disabling
+the agent. Failed tool requests raise and remain errors in the trace.
+
+The notebook calls the model directly and does not route through the restaurant's
+NeMo shield. Changing its prompt/MCP controls does not change the deployed
+restaurant prompt alias, policy or frontend. No application images need changing
+for this learning-path revision; the prepared workbench image does need rebuilding.
+
+`workshop/helpers/Dockerfile.workbench` adds pinned MLflow and LangChain/LangGraph requirements to the
 RHOAI data-science workbench image. The environment runbook builds it through
 OpenShift and supplies its digest as `workbench.image`, so opening the notebook
 does not require a manual package install. These packages do not replace the
@@ -282,15 +298,15 @@ The vendor base's existing Ray/codeflare mismatch remains recorded; distributed
 computing is outside the guided lab. The build runner also stops promptly on a
 terminal Failed/Error/Cancelled build rather than waiting for Complete to time out.
 
-The notebook reads the alias; it never publishes or activates prompts. Run the
-baseline batch, change active in the MLflow UI, then run the candidate batch.
-A fallback, mismatched version or unreadable trace stops the batch. Tool/format
-checks are diagnostic expectations; participants assess answer quality themselves.
+The workbench environment now includes `MODEL_EXTRA_BODY` from the same chart
+value as the restaurant. The notebook uses it for the optional Qwen request
+setting; `model.extraBody: false` removes that provider-specific option.
+No model credentials are stored in notebook cells or outputs.
 
 ## 6. Guardrails use the existing operator and guide
 
 Guardrails is a required part of the hour, using our colleague's guide and
-policy examples. Its protected slot is minutes 40–55; only the wider test suite
+policy examples. Its protected slot is minutes 30–45; only the wider test suite
 and competitor challenge are optional. This is a policy experiment separate
 from the system-prompt experiment.
 
@@ -305,22 +321,13 @@ than treating a working chat as proof of enforcement. NeMo checks themselves
 can call the model; their internal calls are not separately instrumented.
 Restore the saved ConfigMap text and restart/warm NeMo to reset this exercise.
 
-## The hour attendees experience
+The canonical schedule and attendee instructions are in
+[the workshop overview](../workshop/README.md). The infrastructure repository
+links there; it does not duplicate the workshop exercises.
 
-| Time | Activity | What they should be able to explain |
-|---|---|---|
-| 0–5 min | Open the app, MLflow and workbench | Which project/workspace is theirs |
-| 5–18 min | Chat, inspect traces and give feedback | Why a tool was called, what it returned, and whether the answer was useful |
-| 18–23 min | Record five baseline questions | Why evidence must be captured before changing the prompt |
-| 23–33 min | Create/activate a system-prompt version | How MLflow's alias controls the restaurant's next turn |
-| 33–40 min | Compare the candidate and restore the baseline prompt | What improved or regressed for the same question |
-| 40–55 min | Apply, reload and test NeMo guardrails; inspect traces | Whether a request was blocked by policy and which stages were skipped |
-| 55–60 min | Restore and discuss | How to return to the starting state without deleting evidence |
-
-The notebook triggers requests to the restaurant. The LangGraph agent stays in
-the restaurant stack. Neither the Notebook annotation nor the AI asset entry
-turns arbitrary code into traced agent behavior; the existing and added SDK
-instrumentation is what records it.
+Neither the Notebook annotation nor an AI asset entry instruments arbitrary
+code. The existing assistant instrumentation and the notebook's explicit SDK
+configuration produce the traces.
 
 ## 7. Reset and teardown
 
@@ -348,8 +355,8 @@ artifact deletion belongs to the platform teardown runbook.
 
 | Change | Technical detail | Effect / manual equivalent |
 |---|---|---|
-| Prepared workbench | `workshop/helpers/Dockerfile.workbench` installs pinned MLflow Kubernetes authentication and comparison dependencies | Build once and set `workbench.image` to its digest; attendees can run the notebook immediately |
-| Native MLflow injection | The main container name must equal the Notebook name, and `metadata.annotations` selects `mlflow` | The ODH notebook controller injects `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_AUTH` and the token audience. Check the rendered Notebook rather than pasting tokens |
+| Prepared workbench | `workshop/helpers/Dockerfile.workbench` installs pinned MLflow Kubernetes authentication and agent dependencies | Build once and set `workbench.image` to its digest; attendees can run the notebook immediately |
+| Native MLflow injection | The main container name must equal the Notebook name, and `metadata.annotations` selects `mlflow` | The ODH notebook controller injects `MLFLOW_TRACKING_URI` and `MLFLOW_TRACKING_AUTH`; Kubernetes projects the service-account token. Check the rendered Notebook rather than pasting tokens |
 | Native Jupyter startup | `NOTEBOOK_ARGS` supplies port, empty Jupyter token/password and the notebook base URL; omit `NOTEBOOK_BASE_URL`, which the image would turn into a duplicate argument | OpenShift gateway and RBAC proxy authenticate the workbench. Jupyter opens without a second login; duplicate base URL arguments prevent startup |
 | Verified workbench TLS | Removed `MLFLOW_TRACKING_INSECURE_TLS` from the notebook | The native gateway certificate validates normally; no insecure setting is needed for this connection |
 | Consistent participant names | Chart profile, tests and docs use `user1`–`user50` | The namespace is `tableschnappi-user1`, Notebook/service account `user1`, and human RoleBinding subject `user1` |

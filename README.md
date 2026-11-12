@@ -363,7 +363,8 @@ normal release resources. Hooks then run automatically in order:
 
 Start with **[workshop/README.md](workshop/README.md)**. It is the attendee entry
 point for the one-hour restaurant/MLflow lab. Follow the numbered guides in
-order; they tell you when to open the comparison notebook.
+order: explore the restaurant/MLflow and enable guardrails first, then open the
+workbench for the independent LangGraph agent playground.
 
 Instructors: use [preparation and reset](docs/INSTRUCTOR.md) before the event.
 The [changes, pitch and manual walkthrough](docs/IMPLEMENTATION.md) explains installation and
